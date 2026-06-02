@@ -13,37 +13,39 @@ import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } 
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
+// Strict three-color palette: #ffe556 (yellow), #00bcf0 (cyan), #303539 (graphite).
+// All legacy token names map to one of these three so existing code keeps working.
+const YELLOW = "#ffe556";
+const CYAN   = "#00bcf0";
+const GRAPH  = "#303539";
+
 const C = {
-  void:      "#1A1A1F",
-  base:      "#212126",
-  surface:   "#2A2A30",
-  raised:    "#34343A",
-  rim:       "#42424A",
+  void:      GRAPH,
+  base:      GRAPH,
+  surface:   GRAPH,
+  raised:    GRAPH,
+  rim:       CYAN,
 
-  // Thragg
-  orange:    "#E0612A",
-  orangeHi:  "#F07238",
-  orangeDim: "#5C2410",
+  orange:    YELLOW,
+  orangeHi:  YELLOW,
+  orangeDim: GRAPH,
 
-  // Emperor Mark
-  white:     "#F4F6F8",
-  silver:    "#A8B2BC",
-  pale:      "#D0D5DA",
-  ghost:     "#6A6E74",
-  charcoal:  "#3A3C40",
+  white:     YELLOW,
+  silver:    CYAN,
+  pale:      YELLOW,
+  ghost:     CYAN,
+  charcoal:  GRAPH,
 
-  rule:      "#3A3A40",
+  rule:      CYAN,
 };
 
-// ─── SECTION PALETTES ─────────────────────────────────────────────────────────
-// Every section mixes orange + silver/white now (no fully cold tabs)
 const SP = {
-  home:    { primary: C.orange,  secondary: C.silver },
-  workout: { primary: C.orange,  secondary: C.pale   },
-  sleep:   { primary: C.silver,  secondary: C.orange },
-  tasks:   { primary: C.orange,  secondary: C.pale   },
-  metrics: { primary: C.white,   secondary: C.orange },
-  week:    { primary: C.silver,  secondary: C.orange },
+  home:    { primary: YELLOW, secondary: CYAN   },
+  workout: { primary: YELLOW, secondary: CYAN   },
+  sleep:   { primary: CYAN,   secondary: YELLOW },
+  tasks:   { primary: YELLOW, secondary: CYAN   },
+  metrics: { primary: YELLOW, secondary: CYAN   },
+  week:    { primary: CYAN,   secondary: YELLOW },
 };
 
 const VERSION = "The Mk4";
@@ -80,43 +82,38 @@ const STRENGTH_STDS = {
 const SLEEP_Q = ["Terrible","Poor","OK","Good","Perfect"];
 
 // ─── QUOTES (from show universe / paraphrased spirit) ─────────────────────────
-const QUOTES = {
-  default: [
-    // Omni-Man energy — brutal paternal weight
-    "You could have been more. Act like it.",
-    "Think about what you're doing. Is this the best you can be?",
-    "Everything you've built can be taken. Unless you're strong enough to keep it.",
-    "The standard isn't something you meet once.",
-    "You were made for more than this.",
-    "How many more days are you going to waste?",
-  ],
-  lowSleep: [
-    // Nolan / Viltrum — precision, recovery as strategy
-    "A weapon left unsharpened is just dead weight.",
-    "You can't outwork a broken system. Fix the recovery.",
-    "Your body remembers what you do to it.",
-    "Rest isn't surrender. It's how you survive the next fight.",
-  ],
-  missedWorkout: [
-    // Thragg-voiced — cold, threatening
-    "Nothing logged. This is how it starts.",
-    "You had one job today. Just one.",
-    "The bar was there. You weren't.",
-    "Absence is a choice. Own it.",
-  ],
-  streak: [
-    // Emperor Mark — earned authority, quiet confidence
-    "This is what consistency looks like. Don't confuse it with comfort.",
-    "You've shown up. Now show up better.",
-    "The streak doesn't mean you've won. It means you haven't quit.",
-    "Keep the standard. That's all.",
-  ],
-  goodSleep: [
-    "Rested. Ready. No excuses.",
-    "The machine is optimized. Use it today.",
-    "Eight hours. Now go make it worth it.",
-  ],
-};
+const QUOTES = [
+  "What will you have after 500 years?",
+  "The older you get, the more everyone you know disappears.",
+  "You have to be better than me.",
+  "Every decision you make affects someone.",
+  "You don't become who you're supposed to be by avoiding hard choices.",
+  "Fear is only useful if it teaches you something.",
+  "You can't undo what you've done, but you can decide what happens next.",
+  "The future isn't something you find. It's something you build.",
+  "The world keeps moving whether you're ready or not.",
+  "People create their own purpose.",
+  "The most important step you can take is the next one.",
+  "It is possible to commit no mistakes and still lose.",
+  "A man who has a why can bear almost any how.",
+  "We suffer more in imagination than in reality.",
+  "The obstacle is the way.",
+  "You become what you repeatedly do.",
+  "Better to light a candle than curse the darkness.",
+  "Courage is not the absence of fear, but action despite it.",
+  "You are not entitled to the fruits of your labor, only the labor itself.",
+  "A smooth sea never made a skilled sailor.",
+  "The best time to plant a tree was twenty years ago. The second-best time is now.",
+  "The heaviest burdens are often the ones we refuse to set down.",
+  "Discipline is choosing what you want most over what you want now.",
+  "The cost of inaction is often greater than the cost of failure.",
+  "No one is coming to save you.",
+  "The man who moves a mountain begins by carrying away small stones.",
+  "You don't rise to the level of your goals; you fall to the level of your systems.",
+  "Freedom is what you do with what's been done to you.",
+  "The only way out is through.",
+  "When nothing is certain, everything is possible.",
+];
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 const today  = () => new Date().toISOString().split("T")[0];
@@ -129,13 +126,7 @@ const useLS = (key, init) => {
   return [v,set];
 };
 
-const quotePool = data => {
-  const s=data.sleep[today()]; const h=s?parseFloat(s.hours):0;
-  if(h>0&&h<6) return QUOTES.lowSleep;
-  if(!data.workouts[today()]&&new Date().getHours()>18) return QUOTES.missedWorkout;
-  if(h>=8) return QUOTES.goodSleep;
-  return QUOTES.default;
-};
+const quotePool = () => QUOTES;
 
 const calcTier = (lift,val) => {
   const s=STRENGTH_STDS[lift]; if(!s) return null;
@@ -149,25 +140,25 @@ const calcTier = (lift,val) => {
 // Cold white → battleship grey → Thragg orange → deep orange
 // 0 = near-black rim, trace = ghost, low = silver, mid = pale, high = orange, elite = deep orange
 const volColor = v => {
-  if(!v||v<1)  return C.rim;          // untouched
-  if(v<8)      return C.ghost;        // trace
-  if(v<20)     return "#5A6068";      // low — dark silver
-  if(v<40)     return C.silver;       // building — battleship
-  if(v<60)     return C.pale;         // solid — light silver
-  if(v<80)     return C.orangeHi;     // high — bright orange
-  return C.orange;                    // elite — Thragg full orange
+  if(!v||v<1)  return GRAPH;
+  if(v<8)      return CYAN + "33";
+  if(v<20)     return CYAN + "66";
+  if(v<40)     return CYAN + "99";
+  if(v<60)     return CYAN;
+  if(v<80)     return YELLOW + "cc";
+  return YELLOW;
 };
 
 const MuscleMap = ({vol}) => {
   const g = m => volColor(vol[m]||0);
 
   const stops = [
-    ["ELITE", C.orange],
-    ["HIGH",  C.orangeHi],
-    ["SOLID", C.pale],
-    ["BUILD", C.silver],
-    ["TRACE", C.ghost],
-    ["NONE",  C.rim],
+    ["ELITE", YELLOW],
+    ["HIGH",  YELLOW + "cc"],
+    ["SOLID", CYAN],
+    ["BUILD", CYAN + "99"],
+    ["TRACE", CYAN + "33"],
+    ["NONE",  GRAPH],
   ];
 
   // Heroic flying-pose silhouette: one fist raised, cape trailing.
@@ -182,9 +173,7 @@ const MuscleMap = ({vol}) => {
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Anterior</Lbl>
         <svg width="120" height="220" viewBox="0 0 120 220">
-          {/* Cape trailing behind */}
-          <path d="M30,40 Q10,90 18,160 Q28,150 36,90 Z" fill={C.orangeDim} opacity="0.7"/>
-          <path d="M90,40 Q110,90 102,160 Q92,150 84,90 Z" fill={C.orangeDim} opacity="0.7"/>
+          {/* (cape removed) */}
 
           {/* Silhouette base — full body outline */}
           <path d="
@@ -251,9 +240,7 @@ const MuscleMap = ({vol}) => {
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Posterior</Lbl>
         <svg width="120" height="220" viewBox="0 0 120 220">
-          {/* Cape on top */}
-          <path d="M40,38 Q24,90 30,164 L60,180 L90,164 Q96,90 80,38 Q70,42 60,42 Q50,42 40,38 Z" fill={C.orange} opacity="0.85"/>
-          <line x1="60" y1="42" x2="60" y2="176" stroke={C.orangeDim} strokeWidth="1" opacity="0.6"/>
+          {/* (cape removed) */}
 
           {/* Silhouette base */}
           <path d="
@@ -317,8 +304,8 @@ const MuscleMap = ({vol}) => {
         <Lbl style={{color:C.ghost,marginBottom:10}}>Volume</Lbl>
         <div style={{
           width:12,height:96,flexShrink:0,
-          background:`linear-gradient(to top, ${C.rim}, ${C.ghost} 20%, ${C.silver} 45%, ${C.pale} 65%, ${C.orangeHi} 82%, ${C.orange})`,
-          border:`1px solid ${C.rim}`,marginBottom:8,
+          background:`linear-gradient(to top, ${GRAPH}, ${CYAN}55 20%, ${CYAN} 50%, ${YELLOW}cc 75%, ${YELLOW})`,
+          border:`1px solid ${CYAN}55`,marginBottom:8,
         }}/>
         {stops.map(([l,c],i)=>(
           <div key={l} style={{display:"flex",alignItems:"center",gap:7,marginBottom:i<stops.length-1?5:0}}>
