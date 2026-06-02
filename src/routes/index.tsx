@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+// @ts-expect-error - JSX file without types
 import MkApp from "@/components/MkApp.jsx";
 
 export const Route = createFileRoute("/")({
