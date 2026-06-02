@@ -140,13 +140,13 @@ const calcTier = (lift,val) => {
 // Cold white → battleship grey → Thragg orange → deep orange
 // 0 = near-black rim, trace = ghost, low = silver, mid = pale, high = orange, elite = deep orange
 const volColor = v => {
-  if(!v||v<1)  return C.rim;          // untouched
-  if(v<8)      return C.ghost;        // trace
-  if(v<20)     return "#5A6068";      // low — dark silver
-  if(v<40)     return C.silver;       // building — battleship
-  if(v<60)     return C.pale;         // solid — light silver
-  if(v<80)     return C.orangeHi;     // high — bright orange
-  return C.orange;                    // elite — Thragg full orange
+  if(!v||v<1)  return GRAPH;
+  if(v<8)      return CYAN + "33";
+  if(v<20)     return CYAN + "66";
+  if(v<40)     return CYAN + "99";
+  if(v<60)     return CYAN;
+  if(v<80)     return YELLOW + "cc";
+  return YELLOW;
 };
 
 const MuscleMap = ({vol}) => {
