@@ -407,7 +407,14 @@ const Spark = ({data,color=C.orange,h=56}) => {
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 const Home = ({data,streaks}) => {
   const t=today();
-  const quote=pickQuote(data);
+  const pool=quotePool(data);
+  const [qIdx,setQIdx]=useState(0);
+  useEffect(()=>{
+    setQIdx(0);
+    const id=setInterval(()=>setQIdx(i=>(i+1)%pool.length),20000);
+    return ()=>clearInterval(id);
+  },[pool]);
+  const quote=pool[qIdx%pool.length];
   const s=data.sleep[t],w=data.workouts[t],m=data.metrics[t],tk=data.tasks[t]||[];
   const wkDays=last7();
   const sleepVals=wkDays.map(d=>data.sleep[d]?.hours).filter(Boolean).map(Number);
@@ -417,13 +424,14 @@ const Home = ({data,streaks}) => {
 
   return (
     <div>
-      {/* Quote — Thragg orange left border, cold */}
+      {/* Quote — Thragg orange left border, cycles every 20s */}
       <div style={{borderLeft:`2px solid ${C.orange}`,paddingLeft:20,paddingBottom:32,marginBottom:32,borderBottom:`1px solid ${C.rule}`}}>
         <Lbl color={C.orange} style={{marginBottom:14}}>Today</Lbl>
-        <div style={{fontSize:16,fontWeight:300,color:C.white,lineHeight:1.65,letterSpacing:"0.02em",fontStyle:"italic",maxWidth:460}}>
+        <div key={qIdx} style={{fontSize:16,fontWeight:300,color:C.white,lineHeight:1.65,letterSpacing:"0.02em",fontStyle:"italic",maxWidth:460,animation:"up 0.4s ease"}}>
           "{quote}"
         </div>
       </div>
+
 
       {/* Streaks — orange/silver split */}
       <Lbl style={{marginBottom:18}}>Streaks</Lbl>
