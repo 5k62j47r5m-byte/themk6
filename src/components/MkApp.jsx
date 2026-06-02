@@ -1131,22 +1131,47 @@ export default function Mk1() {
         <main style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
           <div style={{
             padding:"24px 36px 20px",borderBottom:`1px solid ${C.rule}`,
-            background:C.base,display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexShrink:0,
+            background:C.base,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div>
-              <div style={{...T.micro,color:C.ghost,marginBottom:8}}>{VERSION} / {active.toUpperCase()}</div>
-              <div style={{fontSize:20,fontWeight:300,letterSpacing:"0.08em",color:C.white,lineHeight:1}}>
-                {SECTIONS.find(s=>s.id===active)?.label}
-              </div>
-            </div>
-            {/* Mobile wordmark */}
-            <div style={{fontSize:18,fontWeight:300,letterSpacing:"0.1em",color:C.white,display:"none"}} className="mwm">{VERSION}</div>
-            {/* Section accent dot — Thragg orange or Emperor silver */}
-            <div style={{display:"flex",gap:4,alignItems:"center"}}>
-              <div style={{width:4,height:4,background:p.secondary,transition:"background 0.3s"}}/>
-              <div style={{width:6,height:6,background:p.primary,transition:"background 0.3s"}}/>
+            <div style={{...T.micro,color:C.ghost,marginBottom:8,textAlign:"center"}}>{VERSION} / {active.toUpperCase()}</div>
+            <div style={{fontSize:20,fontWeight:300,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center"}}>
+              {SECTIONS.find(s=>s.id===active)?.label}
             </div>
           </div>
+
+          <div style={{flex:1,overflowY:"auto",padding:"36px 36px 120px"}}>
+            <div style={{maxWidth:620,width:"100%",margin:"0 auto"}} className="mod" key={active}>
+              {render()}
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* MOBILE NAV */}
+      <div style={{
+        position:"fixed",bottom:0,left:0,right:0,
+        background:C.base,borderTop:`1px solid ${C.rule}`,
+        display:"flex",zIndex:100,
+        paddingBottom:"env(safe-area-inset-bottom,0)",
+      }} className="mnav">
+        {SECTIONS.map(s=>{
+          const isA=active===s.id;
+          const sp=SP[s.id];
+          const Icon=s.Icon;
+          return (
+            <button key={s.id} onClick={()=>setActive(s.id)} style={{
+              flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+              padding:"9px 2px 7px",background:"transparent",border:"none",
+              borderTop:`1px solid ${isA?sp.primary:"transparent"}`,
+              color:isA?sp.primary:C.ghost,cursor:"pointer",
+              ...T.micro,fontSize:8,fontFamily:"inherit",gap:4,
+            }}>
+              <Icon size={16} strokeWidth={1.6}/>
+              <span style={{letterSpacing:"0.12em"}}>{s.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
           <div style={{flex:1,overflowY:"auto",padding:"36px 36px 120px"}}>
             <div style={{maxWidth:620,width:"100%"}} className="mod" key={active}>
