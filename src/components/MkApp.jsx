@@ -1173,38 +1173,6 @@ export default function Mk1() {
         })}
       </div>
 
-          <div style={{flex:1,overflowY:"auto",padding:"36px 36px 120px"}}>
-            <div style={{maxWidth:620,width:"100%"}} className="mod" key={active}>
-              {render()}
-            </div>
-          </div>
-        </main>
-      </div>
-
-      {/* MOBILE NAV */}
-      <div style={{
-        position:"fixed",bottom:0,left:0,right:0,
-        background:C.base,borderTop:`1px solid ${C.rule}`,
-        display:"flex",zIndex:100,
-        paddingBottom:"env(safe-area-inset-bottom,0)",
-      }} className="mnav">
-        {SECTIONS.map(s=>{
-          const isA=active===s.id;
-          const sp=SP[s.id];
-          return (
-            <button key={s.id} onClick={()=>setActive(s.id)} style={{
-              flex:1,display:"flex",flexDirection:"column",alignItems:"center",
-              padding:"11px 4px 9px",background:"transparent",border:"none",
-              borderTop:`1px solid ${isA?sp.primary:"transparent"}`,
-              color:isA?sp.primary:C.ghost,cursor:"pointer",
-              ...T.micro,fontSize:7,fontFamily:"inherit",gap:4,
-            }}>
-              <div style={{width:3,height:3,background:isA?sp.primary:C.ghost,transition:"background 0.15s"}}/>
-              <span>{s.label.slice(0,4)}</span>
-            </button>
-          );
-        })}
-      </div>
 
       <style>{`
         @media(max-width:660px){.sidebar{display:none!important;}.mwm{display:block!important;}}
