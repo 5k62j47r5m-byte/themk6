@@ -561,9 +561,10 @@ const Workout = ({data,setData,date,setDate}) => {
           <input type="checkbox" checked={useCustom} onChange={e=>setUseCustom(e.target.checked)} style={{accentColor:C.orange}}/>
           Custom
         </label>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:16}}>
           <div><Lbl style={{marginBottom:8}}>Sets</Lbl><Input type="number" value={sets} onChange={e=>setSets(e.target.value)} min="1"/></div>
           <div><Lbl style={{marginBottom:8}}>Reps</Lbl><Input type="number" value={reps} onChange={e=>setReps(e.target.value)} min="1"/></div>
+          <div><Lbl style={{marginBottom:8}}>Weight</Lbl><Input type="number" value={wt} onChange={e=>setWt(e.target.value)} placeholder="lbs" min="0"/></div>
         </div>
         <Lbl style={{marginBottom:8}}>Notes</Lbl>
         <Input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional" style={{marginBottom:20}}/>
@@ -585,6 +586,7 @@ const Workout = ({data,setData,date,setDate}) => {
                   <div style={{display:"flex",gap:10,...T.micro}}>
                     <span style={{color:C.orange}}>{ex.muscle}</span>
                     <span style={{color:C.silver}}>{ex.sets}×{ex.reps}</span>
+                    {ex.weight!=null&&<span style={{color:C.white}}>{ex.weight} lbs</span>}
                     {ex.notes&&<span style={{color:C.ghost}}>{ex.notes}</span>}
                   </div>
                 </div>
@@ -595,6 +597,42 @@ const Workout = ({data,setData,date,setDate}) => {
       }
 
       <Rule accent={C.orange}/>
+
+      {/* Exercise Progression — line graph of weight and reps over time */}
+      <Lbl color={C.orange} style={{marginBottom:18}}>Progression</Lbl>
+      <div style={{fontSize:9,color:C.ghost,letterSpacing:"0.14em",marginBottom:16}}>Reps & weight per exercise over time</div>
+      {exerciseNames.length===0
+        ? <Empty text="Log the same exercise twice to see progression."/>
+        : <div style={{background:C.surface,padding:"20px",marginBottom:32}}>
+            <Lbl style={{marginBottom:8}}>Exercise</Lbl>
+            <Sel value={selectedEx} onChange={e=>setTrackEx(e.target.value)} style={{marginBottom:20}}>
+              {exerciseNames.map(n=><option key={n}>{n}</option>)}
+            </Sel>
+            {(()=>{
+              const h=history[selectedEx]||[];
+              const wts=h.map(p=>p.weight!=null?p.weight:null);
+              const rps=h.map(p=>p.reps);
+              const hasWt=wts.some(v=>v!=null);
+              return (
+                <>
+                  {hasWt&&<>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                      <Lbl color={C.white}>Weight (lbs)</Lbl>
+                      <span style={{...T.micro,color:C.ghost}}>{h.length} sessions</span>
+                    </div>
+                    <Spark data={wts} color={C.white} h={70}/>
+                    <div style={{height:18}}/>
+                  </>}
+                  <Lbl color={C.orange} style={{marginBottom:8}}>Reps</Lbl>
+                  <Spark data={rps} color={C.orange} h={70}/>
+                </>
+              );
+            })()}
+          </div>
+      }
+
+      <Rule accent={C.orange}/>
+
 
       {/* Strength tiers — orange=elite, white=advanced, silver=inter */}
       <Lbl color={C.orange} style={{marginBottom:18}}>Strength Tiers</Lbl>
