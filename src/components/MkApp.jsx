@@ -240,9 +240,7 @@ const MuscleMap = ({vol}) => {
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Posterior</Lbl>
         <svg width="120" height="220" viewBox="0 0 120 220">
-          {/* Cape on top */}
-          <path d="M40,38 Q24,90 30,164 L60,180 L90,164 Q96,90 80,38 Q70,42 60,42 Q50,42 40,38 Z" fill={C.orange} opacity="0.85"/>
-          <line x1="60" y1="42" x2="60" y2="176" stroke={C.orangeDim} strokeWidth="1" opacity="0.6"/>
+          {/* (cape removed) */}
 
           {/* Silhouette base */}
           <path d="
