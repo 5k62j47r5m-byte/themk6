@@ -153,12 +153,12 @@ const MuscleMap = ({vol}) => {
   const g = m => volColor(vol[m]||0);
 
   const stops = [
-    ["ELITE", C.orange],
-    ["HIGH",  C.orangeHi],
-    ["SOLID", C.pale],
-    ["BUILD", C.silver],
-    ["TRACE", C.ghost],
-    ["NONE",  C.rim],
+    ["ELITE", YELLOW],
+    ["HIGH",  YELLOW + "cc"],
+    ["SOLID", CYAN],
+    ["BUILD", CYAN + "99"],
+    ["TRACE", CYAN + "33"],
+    ["NONE",  GRAPH],
   ];
 
   // Heroic flying-pose silhouette: one fist raised, cape trailing.
