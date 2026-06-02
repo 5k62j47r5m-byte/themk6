@@ -1118,12 +1118,11 @@ export default function Mk1() {
         {/* MAIN */}
         <main style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
           <div style={{
-            padding:"24px 36px 20px",borderBottom:`1px solid ${C.rule}`,
-            background:C.base,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0,
+            padding:"22px 36px 18px",borderBottom:`1px solid ${C.rule}`,
+            background:C.base,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div style={{...T.micro,color:C.ghost,marginBottom:8,textAlign:"center"}}>{VERSION} / {active.toUpperCase()}</div>
-            <div style={{fontSize:20,fontWeight:300,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center"}}>
-              {SECTIONS.find(s=>s.id===active)?.label}
+            <div style={{fontSize:22,fontWeight:300,letterSpacing:"0.12em",color:C.white,lineHeight:1,textAlign:"center"}}>
+              {VERSION}
             </div>
           </div>
 
