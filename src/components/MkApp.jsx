@@ -13,30 +13,39 @@ import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } 
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
-// Strict three-color palette: #ffe556 (yellow), #00bcf0 (cyan), #303539 (graphite).
-// All legacy token names map to one of these three so existing code keeps working.
-const YELLOW = "#ffe556";
-const CYAN   = "#00bcf0";
-const GRAPH  = "#303539";
+// Three brand colors + tonal variants derived from them for depth, borders,
+// shadows, and hover states. Nothing outside this yellow / cyan / graphite family.
+const YELLOW    = "#ffe556";
+const YELLOW_HI = "#fff09a";  // hover / highlight
+const YELLOW_LO = "#b89a2e";  // pressed / dim
+const CYAN      = "#00bcf0";
+const CYAN_HI   = "#5cd4f6";
+const CYAN_LO   = "#0a7a9c";
+const GRAPH     = "#303539";  // base canvas
+const GRAPH_DK  = "#22262a";  // recessed (inputs, wells)
+const GRAPH_HI  = "#3c4248";  // raised (cards)
+const GRAPH_HI2 = "#484e55";  // raised + hover
+const SHADOW    = "rgba(0,0,0,0.35)";
 
 const C = {
-  void:      GRAPH,
+  void:      GRAPH_DK,
   base:      GRAPH,
-  surface:   GRAPH,
-  raised:    GRAPH,
-  rim:       CYAN,
+  surface:   GRAPH_HI,
+  raised:    GRAPH_HI2,
+  rim:       CYAN_LO,
 
   orange:    YELLOW,
-  orangeHi:  YELLOW,
-  orangeDim: GRAPH,
+  orangeHi:  YELLOW_HI,
+  orangeDim: YELLOW_LO,
 
   white:     YELLOW,
   silver:    CYAN,
-  pale:      YELLOW,
-  ghost:     CYAN,
-  charcoal:  GRAPH,
+  pale:      YELLOW_HI,
+  ghost:     CYAN_LO,
+  charcoal:  GRAPH_DK,
 
-  rule:      CYAN,
+  rule:      CYAN_LO,
+  shadow:    SHADOW,
 };
 
 const SP = {
