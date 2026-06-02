@@ -488,6 +488,7 @@ const Workout = ({data,setData,date,setDate}) => {
   const [useCustom,setUseCustom]=useState(false);
   const [sets,setSets]=useState("3");
   const [reps,setReps]=useState("10");
+  const [wt,setWt]=useState("");
   const [notes,setNotes]=useState("");
   const [maxW,setMaxW]=useLS("mk1_maxw",{});
 
@@ -500,9 +501,9 @@ const Workout = ({data,setData,date,setDate}) => {
 
   const add=()=>{
     const name=useCustom?custom:exName;if(!name.trim())return;
-    const ex={name,muscle,sets:parseInt(sets)||0,reps:parseInt(reps)||0,notes};
+    const ex={name,muscle,sets:parseInt(sets)||0,reps:parseInt(reps)||0,weight:wt?parseFloat(wt):null,notes};
     setData({...data,workouts:{...data.workouts,[date]:{exercises:[...(day.exercises||[]),ex]}}});
-    setNotes("");
+    setNotes("");setWt("");
   };
   const remove=i=>{
     setData({...data,workouts:{...data.workouts,[date]:{exercises:day.exercises.filter((_,idx)=>idx!==i)}}});
@@ -510,6 +511,19 @@ const Workout = ({data,setData,date,setDate}) => {
 
   const totalSets=(day.exercises||[]).reduce((a,e)=>a+e.sets,0);
   const totalReps=(day.exercises||[]).reduce((a,e)=>a+e.sets*e.reps,0);
+
+  // Progression: build history per exercise name across all dates
+  const history={};
+  Object.keys(data.workouts).sort().forEach(d=>{
+    (data.workouts[d]?.exercises||[]).forEach(e=>{
+      if(!history[e.name]) history[e.name]=[];
+      history[e.name].push({date:d,reps:e.reps,sets:e.sets,weight:e.weight});
+    });
+  });
+  const exerciseNames=Object.keys(history).filter(n=>history[n].length>=2);
+  const [trackEx,setTrackEx]=useState("");
+  const selectedEx=trackEx&&history[trackEx]?trackEx:(exerciseNames[0]||"");
+
 
   return (
     <div>
