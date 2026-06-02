@@ -82,43 +82,38 @@ const STRENGTH_STDS = {
 const SLEEP_Q = ["Terrible","Poor","OK","Good","Perfect"];
 
 // ─── QUOTES (from show universe / paraphrased spirit) ─────────────────────────
-const QUOTES = {
-  default: [
-    // Omni-Man energy — brutal paternal weight
-    "You could have been more. Act like it.",
-    "Think about what you're doing. Is this the best you can be?",
-    "Everything you've built can be taken. Unless you're strong enough to keep it.",
-    "The standard isn't something you meet once.",
-    "You were made for more than this.",
-    "How many more days are you going to waste?",
-  ],
-  lowSleep: [
-    // Nolan / Viltrum — precision, recovery as strategy
-    "A weapon left unsharpened is just dead weight.",
-    "You can't outwork a broken system. Fix the recovery.",
-    "Your body remembers what you do to it.",
-    "Rest isn't surrender. It's how you survive the next fight.",
-  ],
-  missedWorkout: [
-    // Thragg-voiced — cold, threatening
-    "Nothing logged. This is how it starts.",
-    "You had one job today. Just one.",
-    "The bar was there. You weren't.",
-    "Absence is a choice. Own it.",
-  ],
-  streak: [
-    // Emperor Mark — earned authority, quiet confidence
-    "This is what consistency looks like. Don't confuse it with comfort.",
-    "You've shown up. Now show up better.",
-    "The streak doesn't mean you've won. It means you haven't quit.",
-    "Keep the standard. That's all.",
-  ],
-  goodSleep: [
-    "Rested. Ready. No excuses.",
-    "The machine is optimized. Use it today.",
-    "Eight hours. Now go make it worth it.",
-  ],
-};
+const QUOTES = [
+  "What will you have after 500 years?",
+  "The older you get, the more everyone you know disappears.",
+  "You have to be better than me.",
+  "Every decision you make affects someone.",
+  "You don't become who you're supposed to be by avoiding hard choices.",
+  "Fear is only useful if it teaches you something.",
+  "You can't undo what you've done, but you can decide what happens next.",
+  "The future isn't something you find. It's something you build.",
+  "The world keeps moving whether you're ready or not.",
+  "People create their own purpose.",
+  "The most important step you can take is the next one.",
+  "It is possible to commit no mistakes and still lose.",
+  "A man who has a why can bear almost any how.",
+  "We suffer more in imagination than in reality.",
+  "The obstacle is the way.",
+  "You become what you repeatedly do.",
+  "Better to light a candle than curse the darkness.",
+  "Courage is not the absence of fear, but action despite it.",
+  "You are not entitled to the fruits of your labor, only the labor itself.",
+  "A smooth sea never made a skilled sailor.",
+  "The best time to plant a tree was twenty years ago. The second-best time is now.",
+  "The heaviest burdens are often the ones we refuse to set down.",
+  "Discipline is choosing what you want most over what you want now.",
+  "The cost of inaction is often greater than the cost of failure.",
+  "No one is coming to save you.",
+  "The man who moves a mountain begins by carrying away small stones.",
+  "You don't rise to the level of your goals; you fall to the level of your systems.",
+  "Freedom is what you do with what's been done to you.",
+  "The only way out is through.",
+  "When nothing is certain, everything is possible.",
+];
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 const today  = () => new Date().toISOString().split("T")[0];
@@ -131,13 +126,7 @@ const useLS = (key, init) => {
   return [v,set];
 };
 
-const quotePool = data => {
-  const s=data.sleep[today()]; const h=s?parseFloat(s.hours):0;
-  if(h>0&&h<6) return QUOTES.lowSleep;
-  if(!data.workouts[today()]&&new Date().getHours()>18) return QUOTES.missedWorkout;
-  if(h>=8) return QUOTES.goodSleep;
-  return QUOTES.default;
-};
+const quotePool = () => QUOTES;
 
 const calcTier = (lift,val) => {
   const s=STRENGTH_STDS[lift]; if(!s) return null;
