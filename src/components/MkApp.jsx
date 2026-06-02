@@ -13,37 +13,39 @@ import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } 
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
+// Strict three-color palette: #ffe556 (yellow), #00bcf0 (cyan), #303539 (graphite).
+// All legacy token names map to one of these three so existing code keeps working.
+const YELLOW = "#ffe556";
+const CYAN   = "#00bcf0";
+const GRAPH  = "#303539";
+
 const C = {
-  void:      "#1A1A1F",
-  base:      "#212126",
-  surface:   "#2A2A30",
-  raised:    "#34343A",
-  rim:       "#42424A",
+  void:      GRAPH,
+  base:      GRAPH,
+  surface:   GRAPH,
+  raised:    GRAPH,
+  rim:       CYAN,
 
-  // Thragg
-  orange:    "#E0612A",
-  orangeHi:  "#F07238",
-  orangeDim: "#5C2410",
+  orange:    YELLOW,
+  orangeHi:  YELLOW,
+  orangeDim: GRAPH,
 
-  // Emperor Mark
-  white:     "#F4F6F8",
-  silver:    "#A8B2BC",
-  pale:      "#D0D5DA",
-  ghost:     "#6A6E74",
-  charcoal:  "#3A3C40",
+  white:     YELLOW,
+  silver:    CYAN,
+  pale:      YELLOW,
+  ghost:     CYAN,
+  charcoal:  GRAPH,
 
-  rule:      "#3A3A40",
+  rule:      CYAN,
 };
 
-// ─── SECTION PALETTES ─────────────────────────────────────────────────────────
-// Every section mixes orange + silver/white now (no fully cold tabs)
 const SP = {
-  home:    { primary: C.orange,  secondary: C.silver },
-  workout: { primary: C.orange,  secondary: C.pale   },
-  sleep:   { primary: C.silver,  secondary: C.orange },
-  tasks:   { primary: C.orange,  secondary: C.pale   },
-  metrics: { primary: C.white,   secondary: C.orange },
-  week:    { primary: C.silver,  secondary: C.orange },
+  home:    { primary: YELLOW, secondary: CYAN   },
+  workout: { primary: YELLOW, secondary: CYAN   },
+  sleep:   { primary: CYAN,   secondary: YELLOW },
+  tasks:   { primary: YELLOW, secondary: CYAN   },
+  metrics: { primary: YELLOW, secondary: CYAN   },
+  week:    { primary: CYAN,   secondary: YELLOW },
 };
 
 const VERSION = "The Mk4";
