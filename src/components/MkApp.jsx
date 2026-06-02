@@ -752,8 +752,8 @@ const Sleep = ({data,setData,date,setDate}) => {
         </div>
       )}
 
-      <div style={{background:C.surface,padding:"22px 20px",marginBottom:32,borderTop:`1px solid ${C.silver}22`}}>
-        <Lbl color={C.silver} style={{marginBottom:18}}>Log Sleep</Lbl>
+      <div style={{background:C.surface,padding:"22px 20px",marginBottom:32,borderTop:`1px solid ${C.orange}55`}}>
+        <Lbl color={C.orange} style={{marginBottom:18}}>Log Sleep</Lbl>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
           <div><Lbl style={{marginBottom:8}}>Bedtime</Lbl><Input type="time" value={bed} onChange={e=>setBed(e.target.value)}/></div>
           <div><Lbl style={{marginBottom:8}}>Wake</Lbl><Input type="time" value={wake} onChange={e=>setWake(e.target.value)}/></div>
@@ -764,16 +764,17 @@ const Sleep = ({data,setData,date,setDate}) => {
             <button key={sq} onClick={()=>setQ(sq)} style={{
               flex:1,padding:"9px 4px",cursor:"pointer",fontFamily:"inherit",
               ...T.micro,textTransform:"none",fontSize:9,
-              background:q===sq?C.silver:"transparent",
-              border:`1px solid ${q===sq?C.silver:C.rule}`,
+              background:q===sq?C.orange:"transparent",
+              border:`1px solid ${q===sq?C.orange:C.rule}`,
               color:q===sq?C.void:C.ghost,
               transition:"all 0.12s",
             }}>{sq}</button>
           ))}
         </div>
         <div style={{fontSize:12,color:C.ghost,marginBottom:16,letterSpacing:"0.06em"}}>= {hrs(bed,wake)} hours</div>
-        <Btn onClick={log} accent={C.silver} style={{width:"100%"}}>Log Sleep</Btn>
+        <Btn onClick={log} accent={C.orange} style={{width:"100%"}}>Log Sleep</Btn>
       </div>
+
 
       <Lbl style={{marginBottom:14}}>Recent Nights</Lbl>
       {recent.map(d=>{
