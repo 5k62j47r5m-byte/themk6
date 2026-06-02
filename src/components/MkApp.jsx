@@ -129,12 +129,12 @@ const useLS = (key, init) => {
   return [v,set];
 };
 
-const pickQuote = data => {
+const quotePool = data => {
   const s=data.sleep[today()]; const h=s?parseFloat(s.hours):0;
-  if(h>0&&h<6) return QUOTES.lowSleep[Math.floor(Math.random()*QUOTES.lowSleep.length)];
-  if(!data.workouts[today()]&&new Date().getHours()>18) return QUOTES.missedWorkout[Math.floor(Math.random()*QUOTES.missedWorkout.length)];
-  if(h>=8) return QUOTES.goodSleep[Math.floor(Math.random()*QUOTES.goodSleep.length)];
-  return QUOTES.default[Math.floor(Math.random()*QUOTES.default.length)];
+  if(h>0&&h<6) return QUOTES.lowSleep;
+  if(!data.workouts[today()]&&new Date().getHours()>18) return QUOTES.missedWorkout;
+  if(h>=8) return QUOTES.goodSleep;
+  return QUOTES.default;
 };
 
 const calcTier = (lift,val) => {
