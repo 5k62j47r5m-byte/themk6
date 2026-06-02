@@ -304,8 +304,8 @@ const MuscleMap = ({vol}) => {
         <Lbl style={{color:C.ghost,marginBottom:10}}>Volume</Lbl>
         <div style={{
           width:12,height:96,flexShrink:0,
-          background:`linear-gradient(to top, ${C.rim}, ${C.ghost} 20%, ${C.silver} 45%, ${C.pale} 65%, ${C.orangeHi} 82%, ${C.orange})`,
-          border:`1px solid ${C.rim}`,marginBottom:8,
+          background:`linear-gradient(to top, ${GRAPH}, ${CYAN}55 20%, ${CYAN} 50%, ${YELLOW}cc 75%, ${YELLOW})`,
+          border:`1px solid ${CYAN}55`,marginBottom:8,
         }}/>
         {stops.map(([l,c],i)=>(
           <div key={l} style={{display:"flex",alignItems:"center",gap:7,marginBottom:i<stops.length-1?5:0}}>
