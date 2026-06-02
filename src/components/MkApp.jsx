@@ -14,33 +14,33 @@ import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } 
 //   Week     → Silver structure, orange for alerts
 
 const C = {
-  void:      "#09090A",
-  base:      "#0D0D0F",
-  surface:   "#131315",
-  raised:    "#1A1A1D",
-  rim:       "#232326",
+  void:      "#1A1A1F",
+  base:      "#212126",
+  surface:   "#2A2A30",
+  raised:    "#34343A",
+  rim:       "#42424A",
 
   // Thragg
-  orange:    "#C84B20",
-  orangeHi:  "#E05828",
-  orangeDim: "#4A1A08",
+  orange:    "#E0612A",
+  orangeHi:  "#F07238",
+  orangeDim: "#5C2410",
 
   // Emperor Mark
-  white:     "#F0F2F4",
-  silver:    "#9AA4AE",
-  pale:      "#C8CDD2",
-  ghost:     "#3C3F43",
-  charcoal:  "#2A2C2E",
+  white:     "#F4F6F8",
+  silver:    "#A8B2BC",
+  pale:      "#D0D5DA",
+  ghost:     "#6A6E74",
+  charcoal:  "#3A3C40",
 
-  rule:      "#1C1C1F",
+  rule:      "#3A3A40",
 };
 
 // ─── SECTION PALETTES ─────────────────────────────────────────────────────────
-// Each section has a primary + secondary accent drawn from the two character palettes
+// Every section mixes orange + silver/white now (no fully cold tabs)
 const SP = {
   home:    { primary: C.orange,  secondary: C.silver },
   workout: { primary: C.orange,  secondary: C.pale   },
-  sleep:   { primary: C.silver,  secondary: C.white  },
+  sleep:   { primary: C.silver,  secondary: C.orange },
   tasks:   { primary: C.orange,  secondary: C.pale   },
   metrics: { primary: C.white,   secondary: C.orange },
   week:    { primary: C.silver,  secondary: C.orange },
@@ -49,12 +49,12 @@ const SP = {
 const VERSION = "The Mk4";
 
 const SECTIONS = [
-  { id:"home",    label:"HOME"    },
-  { id:"workout", label:"WORKOUT" },
-  { id:"sleep",   label:"SLEEP"   },
-  { id:"tasks",   label:"TASKS"   },
-  { id:"metrics", label:"METRICS" },
-  { id:"week",    label:"WEEK"    },
+  { id:"home",    label:"HOME",    Icon: HomeIcon     },
+  { id:"workout", label:"WORKOUT", Icon: Dumbbell     },
+  { id:"sleep",   label:"SLEEP",   Icon: Moon         },
+  { id:"tasks",   label:"TASKS",   Icon: ListChecks   },
+  { id:"metrics", label:"METRICS", Icon: Activity     },
+  { id:"week",    label:"WEEK",    Icon: CalendarDays },
 ];
 
 const MUSCLE_GROUPS = ["Chest","Back","Shoulders","Biceps","Triceps","Legs","Glutes","Core","Calves"];
