@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } from "lucide-react";
 
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
 // Thragg:       #C84B20 brick-orange · #9AA4AE battleship grey · #2A2C2E charcoal
@@ -13,33 +14,33 @@ import { useState, useEffect, useCallback } from "react";
 //   Week     → Silver structure, orange for alerts
 
 const C = {
-  void:      "#09090A",
-  base:      "#0D0D0F",
-  surface:   "#131315",
-  raised:    "#1A1A1D",
-  rim:       "#232326",
+  void:      "#1A1A1F",
+  base:      "#212126",
+  surface:   "#2A2A30",
+  raised:    "#34343A",
+  rim:       "#42424A",
 
   // Thragg
-  orange:    "#C84B20",
-  orangeHi:  "#E05828",
-  orangeDim: "#4A1A08",
+  orange:    "#E0612A",
+  orangeHi:  "#F07238",
+  orangeDim: "#5C2410",
 
   // Emperor Mark
-  white:     "#F0F2F4",
-  silver:    "#9AA4AE",
-  pale:      "#C8CDD2",
-  ghost:     "#3C3F43",
-  charcoal:  "#2A2C2E",
+  white:     "#F4F6F8",
+  silver:    "#A8B2BC",
+  pale:      "#D0D5DA",
+  ghost:     "#6A6E74",
+  charcoal:  "#3A3C40",
 
-  rule:      "#1C1C1F",
+  rule:      "#3A3A40",
 };
 
 // ─── SECTION PALETTES ─────────────────────────────────────────────────────────
-// Each section has a primary + secondary accent drawn from the two character palettes
+// Every section mixes orange + silver/white now (no fully cold tabs)
 const SP = {
   home:    { primary: C.orange,  secondary: C.silver },
   workout: { primary: C.orange,  secondary: C.pale   },
-  sleep:   { primary: C.silver,  secondary: C.white  },
+  sleep:   { primary: C.silver,  secondary: C.orange },
   tasks:   { primary: C.orange,  secondary: C.pale   },
   metrics: { primary: C.white,   secondary: C.orange },
   week:    { primary: C.silver,  secondary: C.orange },
@@ -48,12 +49,12 @@ const SP = {
 const VERSION = "The Mk4";
 
 const SECTIONS = [
-  { id:"home",    label:"HOME"    },
-  { id:"workout", label:"WORKOUT" },
-  { id:"sleep",   label:"SLEEP"   },
-  { id:"tasks",   label:"TASKS"   },
-  { id:"metrics", label:"METRICS" },
-  { id:"week",    label:"WEEK"    },
+  { id:"home",    label:"HOME",    Icon: HomeIcon     },
+  { id:"workout", label:"WORKOUT", Icon: Dumbbell     },
+  { id:"sleep",   label:"SLEEP",   Icon: Moon         },
+  { id:"tasks",   label:"TASKS",   Icon: ListChecks   },
+  { id:"metrics", label:"METRICS", Icon: Activity     },
+  { id:"week",    label:"WEEK",    Icon: CalendarDays },
 ];
 
 const MUSCLE_GROUPS = ["Chest","Back","Shoulders","Biceps","Triceps","Legs","Glutes","Core","Calves"];
@@ -128,12 +129,12 @@ const useLS = (key, init) => {
   return [v,set];
 };
 
-const pickQuote = data => {
+const quotePool = data => {
   const s=data.sleep[today()]; const h=s?parseFloat(s.hours):0;
-  if(h>0&&h<6) return QUOTES.lowSleep[Math.floor(Math.random()*QUOTES.lowSleep.length)];
-  if(!data.workouts[today()]&&new Date().getHours()>18) return QUOTES.missedWorkout[Math.floor(Math.random()*QUOTES.missedWorkout.length)];
-  if(h>=8) return QUOTES.goodSleep[Math.floor(Math.random()*QUOTES.goodSleep.length)];
-  return QUOTES.default[Math.floor(Math.random()*QUOTES.default.length)];
+  if(h>0&&h<6) return QUOTES.lowSleep;
+  if(!data.workouts[today()]&&new Date().getHours()>18) return QUOTES.missedWorkout;
+  if(h>=8) return QUOTES.goodSleep;
+  return QUOTES.default;
 };
 
 const calcTier = (lift,val) => {
@@ -160,7 +161,6 @@ const volColor = v => {
 const MuscleMap = ({vol}) => {
   const g = m => volColor(vol[m]||0);
 
-  // Gradient stops for the legend
   const stops = [
     ["ELITE", C.orange],
     ["HIGH",  C.orangeHi],
@@ -170,105 +170,151 @@ const MuscleMap = ({vol}) => {
     ["NONE",  C.rim],
   ];
 
+  // Heroic flying-pose silhouette: one fist raised, cape trailing.
+  // The silhouette outline reads as a generic muscular hero; muscle regions
+  // are painted with volume colors on top of the silhouette base.
+  const SIL = C.charcoal;
+
   return (
     <div style={{display:"flex", gap:24, justifyContent:"center", alignItems:"flex-start", flexWrap:"wrap"}}>
 
-      {/* FRONT */}
+      {/* FRONT — heroic silhouette */}
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Anterior</Lbl>
-        <svg width="96" height="200" viewBox="0 0 96 200">
-          {/* Head */}
-          <ellipse cx="48" cy="16" rx="13" ry="14" fill={C.raised} stroke={C.rim} strokeWidth="1"/>
-          {/* Neck */}
-          <rect x="43" y="28" width="10" height="8" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Shoulders — wide traps feel */}
-          <path d="M16,38 Q22,34 35,36 L35,52 Q22,54 16,50 Z" fill={g("Shoulders")} stroke={C.rim} strokeWidth="0.5"/>
-          <path d="M80,38 Q74,34 61,36 L61,52 Q74,54 80,50 Z" fill={g("Shoulders")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Chest — two lobes */}
-          <path d="M35,36 Q41,32 48,34 Q55,32 61,36 L61,56 Q55,60 48,58 Q41,60 35,56 Z" fill={g("Chest")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Chest center line */}
-          <line x1="48" y1="36" x2="48" y2="58" stroke={C.rim} strokeWidth="0.8" opacity="0.7"/>
-          {/* Core / Abs */}
-          <rect x="35" y="58" width="26" height="38" rx="2" fill={g("Core")} stroke={C.rim} strokeWidth="0.5"/>
-          <line x1="48" y1="58" x2="48" y2="96" stroke={C.rim} strokeWidth="0.8" opacity="0.6"/>
-          <line x1="35" y1="69" x2="61" y2="69" stroke={C.rim} strokeWidth="0.5" opacity="0.5"/>
-          <line x1="35" y1="80" x2="61" y2="80" stroke={C.rim} strokeWidth="0.5" opacity="0.5"/>
-          {/* Obliques */}
-          <path d="M35,58 Q30,68 31,88 L35,96 Z" fill={g("Core")} stroke={C.rim} strokeWidth="0.4" opacity="0.6"/>
-          <path d="M61,58 Q66,68 65,88 L61,96 Z" fill={g("Core")} stroke={C.rim} strokeWidth="0.4" opacity="0.6"/>
-          {/* Biceps */}
-          <rect x="10" y="52" width="12" height="30" rx="6" fill={g("Biceps")} stroke={C.rim} strokeWidth="0.5"/>
-          <rect x="74" y="52" width="12" height="30" rx="6" fill={g("Biceps")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Triceps side peek */}
-          <rect x="8"  y="56" width="6"  height="22" rx="3" fill={g("Triceps")} stroke={C.rim} strokeWidth="0.4" opacity="0.55"/>
-          <rect x="82" y="56" width="6"  height="22" rx="3" fill={g("Triceps")} stroke={C.rim} strokeWidth="0.4" opacity="0.55"/>
-          {/* Forearms */}
-          <rect x="11" y="83" width="10" height="24" rx="5" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          <rect x="75" y="83" width="10" height="24" rx="5" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Hip crease */}
-          <path d="M35,96 Q41,100 48,99 Q55,100 61,96" fill="none" stroke={C.rim} strokeWidth="0.6" opacity="0.5"/>
-          {/* Quads — two heads visible */}
-          <path d="M35,100 Q30,102 28,148 L41,148 Q43,115 40,100 Z" fill={g("Legs")} stroke={C.rim} strokeWidth="0.5"/>
-          <path d="M61,100 Q66,102 68,148 L55,148 Q53,115 56,100 Z" fill={g("Legs")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* VMO highlight */}
-          <ellipse cx="38" cy="142" rx="6" ry="5" fill={g("Legs")} stroke={C.rim} strokeWidth="0.4" opacity="0.7"/>
-          <ellipse cx="58" cy="142" rx="6" ry="5" fill={g("Legs")} stroke={C.rim} strokeWidth="0.4" opacity="0.7"/>
-          {/* Calves */}
-          <path d="M29,150 Q26,158 28,176 Q32,182 37,180 Q41,174 40,150 Z" fill={g("Calves")} stroke={C.rim} strokeWidth="0.5"/>
-          <path d="M67,150 Q70,158 68,176 Q64,182 59,180 Q55,174 56,150 Z" fill={g("Calves")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Feet */}
-          <ellipse cx="33" cy="183" rx="7" ry="4" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          <ellipse cx="63" cy="183" rx="7" ry="4" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
+        <svg width="120" height="220" viewBox="0 0 120 220">
+          {/* Cape trailing behind */}
+          <path d="M30,40 Q10,90 18,160 Q28,150 36,90 Z" fill={C.orangeDim} opacity="0.7"/>
+          <path d="M90,40 Q110,90 102,160 Q92,150 84,90 Z" fill={C.orangeDim} opacity="0.7"/>
+
+          {/* Silhouette base — full body outline */}
+          <path d="
+            M60,8
+            C70,8 76,16 76,26
+            C76,34 72,40 68,42
+            L78,46
+            Q92,50 96,68
+            L108,80
+            Q112,84 108,92
+            L94,86
+            L88,80
+            L86,108
+            L82,148
+            Q86,170 84,196
+            L74,212
+            L66,212
+            L60,180
+            L54,212
+            L46,212
+            L36,196
+            Q34,170 38,148
+            L34,108
+            L32,80
+            L26,86
+            L12,92
+            Q8,84 12,80
+            L24,68
+            Q28,50 42,46
+            L52,42
+            C48,40 44,34 44,26
+            C44,16 50,8 60,8 Z
+          " fill={SIL}/>
+
+          {/* SHOULDERS / Delts */}
+          <ellipse cx="32" cy="58" rx="9" ry="11" fill={g("Shoulders")} opacity="0.92"/>
+          <ellipse cx="88" cy="58" rx="9" ry="11" fill={g("Shoulders")} opacity="0.92"/>
+
+          {/* CHEST — two pecs */}
+          <path d="M44,52 Q52,48 59,52 L59,74 Q52,78 44,74 Z" fill={g("Chest")} opacity="0.95"/>
+          <path d="M76,52 Q68,48 61,52 L61,74 Q68,78 76,74 Z" fill={g("Chest")} opacity="0.95"/>
+
+          {/* BICEPS */}
+          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Biceps")} opacity="0.92"/>
+          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Biceps")} opacity="0.92"/>
+
+          {/* CORE — abs panel */}
+          <rect x="46" y="76" width="28" height="42" rx="3" fill={g("Core")} opacity="0.92"/>
+          <line x1="60" y1="76" x2="60" y2="118" stroke={C.void} strokeWidth="0.7" opacity="0.55"/>
+          <line x1="46" y1="88" x2="74" y2="88" stroke={C.void} strokeWidth="0.5" opacity="0.45"/>
+          <line x1="46" y1="100" x2="74" y2="100" stroke={C.void} strokeWidth="0.5" opacity="0.45"/>
+
+          {/* QUADS */}
+          <path d="M44,124 Q40,128 40,168 L52,168 Q54,140 54,124 Z" fill={g("Legs")} opacity="0.92"/>
+          <path d="M76,124 Q80,128 80,168 L68,168 Q66,140 66,124 Z" fill={g("Legs")} opacity="0.92"/>
+
+          {/* CALVES — front view subtle */}
+          <ellipse cx="46" cy="186" rx="6" ry="10" fill={g("Calves")} opacity="0.85"/>
+          <ellipse cx="74" cy="186" rx="6" ry="10" fill={g("Calves")} opacity="0.85"/>
         </svg>
       </div>
 
-      {/* BACK */}
+      {/* BACK — heroic silhouette */}
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Posterior</Lbl>
-        <svg width="96" height="200" viewBox="0 0 96 200">
-          <ellipse cx="48" cy="16" rx="13" ry="14" fill={C.raised} stroke={C.rim} strokeWidth="1"/>
-          <rect x="43" y="28" width="10" height="8" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Traps */}
-          <path d="M35,36 Q41,30 48,32 Q55,30 61,36 Q55,38 48,36 Q41,38 35,36 Z" fill={g("Shoulders")} stroke={C.rim} strokeWidth="0.5" opacity="0.8"/>
-          {/* Rear delts */}
-          <path d="M16,38 Q22,34 35,36 L35,50 Q22,52 16,48 Z" fill={g("Shoulders")} stroke={C.rim} strokeWidth="0.5"/>
-          <path d="M80,38 Q74,34 61,36 L61,50 Q74,52 80,48 Z" fill={g("Shoulders")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Lats — flared */}
-          <path d="M35,36 Q20,48 22,92 L48,90 L74,92 Q76,48 61,36 Q55,38 48,36 Q41,38 35,36 Z" fill={g("Back")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Spine */}
-          <line x1="48" y1="36" x2="48" y2="92" stroke={C.rim} strokeWidth="0.8" opacity="0.55"/>
-          {/* Horizontal back lines */}
-          <line x1="35" y1="52" x2="61" y2="52" stroke={C.rim} strokeWidth="0.4" opacity="0.4"/>
-          <line x1="30" y1="68" x2="66" y2="68" stroke={C.rim} strokeWidth="0.4" opacity="0.4"/>
-          {/* Triceps */}
-          <rect x="10" y="52" width="12" height="30" rx="6" fill={g("Triceps")} stroke={C.rim} strokeWidth="0.5"/>
-          <rect x="74" y="52" width="12" height="30" rx="6" fill={g("Triceps")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Forearms */}
-          <rect x="11" y="83" width="10" height="24" rx="5" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          <rect x="75" y="83" width="10" height="24" rx="5" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Glutes — rounded, prominent */}
-          <ellipse cx="38" cy="102" rx="14" ry="12" fill={g("Glutes")} stroke={C.rim} strokeWidth="0.5"/>
-          <ellipse cx="58" cy="102" rx="14" ry="12" fill={g("Glutes")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Glute divide */}
-          <line x1="48" y1="94" x2="48" y2="114" stroke={C.rim} strokeWidth="0.6" opacity="0.5"/>
-          {/* Hamstrings */}
-          <path d="M35,110 Q30,112 29,150 L42,150 Q44,120 42,110 Z" fill={g("Legs")} stroke={C.rim} strokeWidth="0.5"/>
-          <path d="M61,110 Q66,112 67,150 L54,150 Q52,120 54,110 Z" fill={g("Legs")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Calves — gastrocnemius two heads */}
-          <path d="M29,152 Q25,162 28,176 Q32,182 38,180 Q42,172 40,152 Z" fill={g("Calves")} stroke={C.rim} strokeWidth="0.5"/>
-          <path d="M67,152 Q71,162 68,176 Q64,182 58,180 Q54,172 56,152 Z" fill={g("Calves")} stroke={C.rim} strokeWidth="0.5"/>
-          {/* Soleus inner */}
-          <path d="M32,162 Q30,172 33,178" fill="none" stroke={C.rim} strokeWidth="0.4" opacity="0.4"/>
-          <path d="M64,162 Q66,172 63,178" fill="none" stroke={C.rim} strokeWidth="0.4" opacity="0.4"/>
-          <ellipse cx="33" cy="183" rx="7" ry="4" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
-          <ellipse cx="63" cy="183" rx="7" ry="4" fill={C.raised} stroke={C.rim} strokeWidth="0.5"/>
+        <svg width="120" height="220" viewBox="0 0 120 220">
+          {/* Cape on top */}
+          <path d="M40,38 Q24,90 30,164 L60,180 L90,164 Q96,90 80,38 Q70,42 60,42 Q50,42 40,38 Z" fill={C.orange} opacity="0.85"/>
+          <line x1="60" y1="42" x2="60" y2="176" stroke={C.orangeDim} strokeWidth="1" opacity="0.6"/>
+
+          {/* Silhouette base */}
+          <path d="
+            M60,8
+            C70,8 76,16 76,26
+            C76,34 72,40 68,42
+            L78,46
+            Q92,50 96,68
+            L108,80
+            Q112,84 108,92
+            L94,86
+            L88,80
+            L86,108
+            L82,148
+            Q86,170 84,196
+            L74,212
+            L66,212
+            L60,180
+            L54,212
+            L46,212
+            L36,196
+            Q34,170 38,148
+            L34,108
+            L32,80
+            L26,86
+            L12,92
+            Q8,84 12,80
+            L24,68
+            Q28,50 42,46
+            L52,42
+            C48,40 44,34 44,26
+            C44,16 50,8 60,8 Z
+          " fill={SIL} opacity="0.55"/>
+
+          {/* TRAPS */}
+          <path d="M48,46 Q60,42 72,46 Q66,54 60,54 Q54,54 48,46 Z" fill={g("Shoulders")} opacity="0.95"/>
+
+          {/* LATS — flared V */}
+          <path d="M40,52 Q26,72 32,108 L60,104 L88,108 Q94,72 80,52 Q70,56 60,56 Q50,56 40,52 Z" fill={g("Back")} opacity="0.92"/>
+
+          {/* TRICEPS */}
+          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Triceps")} opacity="0.92"/>
+          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Triceps")} opacity="0.92"/>
+
+          {/* GLUTES */}
+          <ellipse cx="50" cy="124" rx="11" ry="10" fill={g("Glutes")} opacity="0.95"/>
+          <ellipse cx="70" cy="124" rx="11" ry="10" fill={g("Glutes")} opacity="0.95"/>
+
+          {/* HAMSTRINGS */}
+          <path d="M44,136 Q40,140 40,170 L52,170 Q54,150 54,136 Z" fill={g("Legs")} opacity="0.92"/>
+          <path d="M76,136 Q80,140 80,170 L68,170 Q66,150 66,136 Z" fill={g("Legs")} opacity="0.92"/>
+
+          {/* CALVES */}
+          <ellipse cx="46" cy="188" rx="6" ry="12" fill={g("Calves")} opacity="0.95"/>
+          <ellipse cx="74" cy="188" rx="6" ry="12" fill={g("Calves")} opacity="0.95"/>
         </svg>
       </div>
 
-      {/* SCALE — continuous gradient bar */}
+      {/* SCALE */}
       <div style={{display:"flex",flexDirection:"column",paddingTop:22,gap:0}}>
         <Lbl style={{color:C.ghost,marginBottom:10}}>Volume</Lbl>
-        {/* Gradient bar */}
         <div style={{
           width:12,height:96,flexShrink:0,
           background:`linear-gradient(to top, ${C.rim}, ${C.ghost} 20%, ${C.silver} 45%, ${C.pale} 65%, ${C.orangeHi} 82%, ${C.orange})`,
@@ -406,7 +452,14 @@ const Spark = ({data,color=C.orange,h=56}) => {
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 const Home = ({data,streaks}) => {
   const t=today();
-  const quote=pickQuote(data);
+  const pool=quotePool(data);
+  const [qIdx,setQIdx]=useState(0);
+  useEffect(()=>{
+    setQIdx(0);
+    const id=setInterval(()=>setQIdx(i=>(i+1)%pool.length),20000);
+    return ()=>clearInterval(id);
+  },[pool]);
+  const quote=pool[qIdx%pool.length];
   const s=data.sleep[t],w=data.workouts[t],m=data.metrics[t],tk=data.tasks[t]||[];
   const wkDays=last7();
   const sleepVals=wkDays.map(d=>data.sleep[d]?.hours).filter(Boolean).map(Number);
@@ -416,13 +469,14 @@ const Home = ({data,streaks}) => {
 
   return (
     <div>
-      {/* Quote — Thragg orange left border, cold */}
+      {/* Quote — Thragg orange left border, cycles every 20s */}
       <div style={{borderLeft:`2px solid ${C.orange}`,paddingLeft:20,paddingBottom:32,marginBottom:32,borderBottom:`1px solid ${C.rule}`}}>
         <Lbl color={C.orange} style={{marginBottom:14}}>Today</Lbl>
-        <div style={{fontSize:16,fontWeight:300,color:C.white,lineHeight:1.65,letterSpacing:"0.02em",fontStyle:"italic",maxWidth:460}}>
+        <div key={qIdx} style={{fontSize:16,fontWeight:300,color:C.white,lineHeight:1.65,letterSpacing:"0.02em",fontStyle:"italic",maxWidth:460,animation:"up 0.4s ease"}}>
           "{quote}"
         </div>
       </div>
+
 
       {/* Streaks — orange/silver split */}
       <Lbl style={{marginBottom:18}}>Streaks</Lbl>
@@ -683,7 +737,7 @@ const Sleep = ({data,setData,date,setDate}) => {
 
   return (
     <div>
-      <DatePicker date={date} setDate={setDate} accent={C.silver}/>
+      <DatePicker date={date} setDate={setDate} accent={C.orange}/>
 
       {ex&&(
         <div style={{borderLeft:`2px solid ${sleepAccent}`,paddingLeft:20,marginBottom:32}}>
@@ -698,8 +752,8 @@ const Sleep = ({data,setData,date,setDate}) => {
         </div>
       )}
 
-      <div style={{background:C.surface,padding:"22px 20px",marginBottom:32,borderTop:`1px solid ${C.silver}22`}}>
-        <Lbl color={C.silver} style={{marginBottom:18}}>Log Sleep</Lbl>
+      <div style={{background:C.surface,padding:"22px 20px",marginBottom:32,borderTop:`1px solid ${C.orange}55`}}>
+        <Lbl color={C.orange} style={{marginBottom:18}}>Log Sleep</Lbl>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
           <div><Lbl style={{marginBottom:8}}>Bedtime</Lbl><Input type="time" value={bed} onChange={e=>setBed(e.target.value)}/></div>
           <div><Lbl style={{marginBottom:8}}>Wake</Lbl><Input type="time" value={wake} onChange={e=>setWake(e.target.value)}/></div>
@@ -710,16 +764,17 @@ const Sleep = ({data,setData,date,setDate}) => {
             <button key={sq} onClick={()=>setQ(sq)} style={{
               flex:1,padding:"9px 4px",cursor:"pointer",fontFamily:"inherit",
               ...T.micro,textTransform:"none",fontSize:9,
-              background:q===sq?C.silver:"transparent",
-              border:`1px solid ${q===sq?C.silver:C.rule}`,
+              background:q===sq?C.orange:"transparent",
+              border:`1px solid ${q===sq?C.orange:C.rule}`,
               color:q===sq?C.void:C.ghost,
               transition:"all 0.12s",
             }}>{sq}</button>
           ))}
         </div>
         <div style={{fontSize:12,color:C.ghost,marginBottom:16,letterSpacing:"0.06em"}}>= {hrs(bed,wake)} hours</div>
-        <Btn onClick={log} accent={C.silver} style={{width:"100%"}}>Log Sleep</Btn>
+        <Btn onClick={log} accent={C.orange} style={{width:"100%"}}>Log Sleep</Btn>
       </div>
+
 
       <Lbl style={{marginBottom:14}}>Recent Nights</Lbl>
       {recent.map(d=>{
@@ -1077,25 +1132,16 @@ export default function Mk1() {
         <main style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
           <div style={{
             padding:"24px 36px 20px",borderBottom:`1px solid ${C.rule}`,
-            background:C.base,display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexShrink:0,
+            background:C.base,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div>
-              <div style={{...T.micro,color:C.ghost,marginBottom:8}}>{VERSION} / {active.toUpperCase()}</div>
-              <div style={{fontSize:20,fontWeight:300,letterSpacing:"0.08em",color:C.white,lineHeight:1}}>
-                {SECTIONS.find(s=>s.id===active)?.label}
-              </div>
-            </div>
-            {/* Mobile wordmark */}
-            <div style={{fontSize:18,fontWeight:300,letterSpacing:"0.1em",color:C.white,display:"none"}} className="mwm">{VERSION}</div>
-            {/* Section accent dot — Thragg orange or Emperor silver */}
-            <div style={{display:"flex",gap:4,alignItems:"center"}}>
-              <div style={{width:4,height:4,background:p.secondary,transition:"background 0.3s"}}/>
-              <div style={{width:6,height:6,background:p.primary,transition:"background 0.3s"}}/>
+            <div style={{...T.micro,color:C.ghost,marginBottom:8,textAlign:"center"}}>{VERSION} / {active.toUpperCase()}</div>
+            <div style={{fontSize:20,fontWeight:300,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center"}}>
+              {SECTIONS.find(s=>s.id===active)?.label}
             </div>
           </div>
 
           <div style={{flex:1,overflowY:"auto",padding:"36px 36px 120px"}}>
-            <div style={{maxWidth:620,width:"100%"}} className="mod" key={active}>
+            <div style={{maxWidth:620,width:"100%",margin:"0 auto"}} className="mod" key={active}>
               {render()}
             </div>
           </div>
@@ -1112,20 +1158,22 @@ export default function Mk1() {
         {SECTIONS.map(s=>{
           const isA=active===s.id;
           const sp=SP[s.id];
+          const Icon=s.Icon;
           return (
             <button key={s.id} onClick={()=>setActive(s.id)} style={{
-              flex:1,display:"flex",flexDirection:"column",alignItems:"center",
-              padding:"11px 4px 9px",background:"transparent",border:"none",
+              flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+              padding:"9px 2px 7px",background:"transparent",border:"none",
               borderTop:`1px solid ${isA?sp.primary:"transparent"}`,
               color:isA?sp.primary:C.ghost,cursor:"pointer",
-              ...T.micro,fontSize:7,fontFamily:"inherit",gap:4,
+              ...T.micro,fontSize:8,fontFamily:"inherit",gap:4,
             }}>
-              <div style={{width:3,height:3,background:isA?sp.primary:C.ghost,transition:"background 0.15s"}}/>
-              <span>{s.label.slice(0,4)}</span>
+              <Icon size={16} strokeWidth={1.6}/>
+              <span style={{letterSpacing:"0.12em"}}>{s.label}</span>
             </button>
           );
         })}
       </div>
+
 
       <style>{`
         @media(max-width:660px){.sidebar{display:none!important;}.mwm{display:block!important;}}
