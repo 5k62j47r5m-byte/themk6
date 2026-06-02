@@ -48,7 +48,7 @@ const SP = {
   week:    { primary: CYAN,   secondary: YELLOW },
 };
 
-const VERSION = "The Mk4";
+const VERSION = "The Mk6";
 
 const SECTIONS = [
   { id:"home",    label:"HOME",    Icon: HomeIcon     },
