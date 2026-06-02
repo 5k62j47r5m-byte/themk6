@@ -737,7 +737,7 @@ const Sleep = ({data,setData,date,setDate}) => {
 
   return (
     <div>
-      <DatePicker date={date} setDate={setDate} accent={C.silver}/>
+      <DatePicker date={date} setDate={setDate} accent={C.orange}/>
 
       {ex&&(
         <div style={{borderLeft:`2px solid ${sleepAccent}`,paddingLeft:20,marginBottom:32}}>
