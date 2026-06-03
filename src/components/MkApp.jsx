@@ -524,64 +524,84 @@ const Home = ({data,streaks}) => {
 
   return (
     <div>
-      {/* Quote — Thragg orange left border, cycles every 20s */}
-      <div style={{borderLeft:`2px solid ${C.orange}`,paddingLeft:20,paddingBottom:32,marginBottom:32,borderBottom:`1px solid ${C.rule}`}}>
+      {/* Quote — bold left bar, bigger heft */}
+      <div style={{
+        borderLeft:`4px solid ${C.orange}`,paddingLeft:24,paddingBottom:32,marginBottom:36,
+        borderBottom:`1px solid ${C.rule}`,
+      }}>
         <Lbl color={C.orange} style={{marginBottom:14}}>Today</Lbl>
-        <div key={qIdx} style={{fontSize:16,fontWeight:300,color:C.white,lineHeight:1.65,letterSpacing:"0.02em",fontStyle:"italic",maxWidth:460,animation:"up 0.4s ease"}}>
+        <div key={qIdx} style={{
+          fontSize:22,fontWeight:600,color:C.white,lineHeight:1.45,letterSpacing:"0.005em",
+          fontStyle:"italic",maxWidth:520,animation:"up 0.4s ease",textShadow:`0 0 24px ${GLOW_Y}33`,
+        }}>
           "{quote}"
         </div>
       </div>
 
 
-      {/* Streaks — orange/silver split */}
+      {/* Streaks */}
       <Lbl style={{marginBottom:18}}>Streaks</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:36}}>
         {[
           {label:"WORKOUT",val:streaks.workout||0,accent:C.orange},
           {label:"SLEEP",  val:streaks.sleep||0,  accent:C.silver},
           {label:"MOOD",   val:streaks.mood||0,   accent:C.pale},
-          {label:"WEIGHT", val:streaks.weight||0, accent:C.ghost},
+          {label:"WEIGHT", val:streaks.weight||0, accent:CYAN_HI},
         ].map(({label,val,accent})=>(
-          <div key={label} style={{background:C.surface,padding:"20px 16px",borderBottom:`2px solid ${val>0?accent:C.rule}`}}>
-            <div style={{fontSize:28,fontWeight:300,color:val>0?accent:C.ghost,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{val>0?val:"—"}</div>
-            <Lbl style={{marginTop:8}}>{label}</Lbl>
-            {/* Subtle "days" label — nod to Viltrumite lifespan obsession */}
-            {val>0&&<div style={{fontSize:7,color:accent+"66",letterSpacing:"0.2em",marginTop:3}}>DAY{val!==1?"S":""}</div>}
+          <div key={label} style={{
+            background:`linear-gradient(160deg, ${C.surface}, ${C.base})`,
+            padding:"22px 14px",borderRadius:14,
+            border:`1px solid ${val>0?accent+"55":C.rule}`,
+            borderBottom:`3px solid ${val>0?accent:C.rule}`,
+            boxShadow:val>0?`0 4px 16px ${accent}33`:`0 2px 6px ${SHADOW}`,
+          }}>
+            <div style={{fontSize:38,fontWeight:800,color:val>0?accent:C.ghost,fontVariantNumeric:"tabular-nums",lineHeight:1,textShadow:val>0?`0 0 18px ${accent}66`:"none"}}>{val>0?val:"—"}</div>
+            <Lbl style={{marginTop:10}}>{label}</Lbl>
+            {val>0&&<div style={{fontSize:9,fontWeight:700,color:accent+"99",letterSpacing:"0.22em",marginTop:4}}>DAY{val!==1?"S":""}</div>}
           </div>
         ))}
       </div>
 
-      {/* Status — secondary accent per module */}
+      {/* Status */}
       <Lbl style={{marginBottom:18}}>Status</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:36}}>
         {[
           {label:"WORKOUT",logged:!!w,detail:w?`${w.exercises?.length||0} exercises`:"Not logged",accent:SP.workout.primary},
           {label:"SLEEP",  logged:!!s,detail:s?`${s.hours}h · ${s.quality}`:"Not logged",          accent:SP.sleep.primary},
           {label:"TASKS",  logged:tk.length>0,detail:tk.length>0?`${tk.filter(x=>x.done).length}/${tk.length} done`:"Nothing added",accent:SP.tasks.primary},
           {label:"METRICS",logged:!!m,detail:m?`${m.weight||"—"} lbs · ${m.mood||"—"}/5`:"Not logged",accent:SP.metrics.primary},
         ].map(item=>(
-          <div key={item.label} style={{background:C.surface,padding:"18px 16px",borderBottom:`1px solid ${item.logged?item.accent:C.rule}`}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+          <div key={item.label} style={{
+            background:C.surface,padding:"20px 18px",borderRadius:12,
+            border:`1px solid ${item.logged?item.accent+"55":C.rule}`,
+            borderLeft:`4px solid ${item.logged?item.accent:C.rule}`,
+            boxShadow:`0 2px 8px ${SHADOW}`,
+          }}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <Lbl>{item.label}</Lbl>
-              <span style={{fontSize:10,color:item.logged?"#55CC88":C.orange}}>{item.logged?"✓":"✗"}</span>
+              <span style={{fontSize:14,fontWeight:800,color:item.logged?"#55CC88":C.orange}}>{item.logged?"✓":"✗"}</span>
             </div>
-            <div style={{fontSize:12,color:item.logged?C.white:C.ghost,letterSpacing:"0.04em"}}>{item.detail}</div>
+            <div style={{fontSize:14,fontWeight:600,color:item.logged?C.white:C.ghost,letterSpacing:"0.02em"}}>{item.detail}</div>
           </div>
         ))}
       </div>
 
       {/* Week avg */}
       <Lbl style={{marginBottom:18}}>Week Average</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
         {[
           {label:"SLEEP",    val:sleepVals.length?(sleepVals.reduce((a,b)=>a+b)/sleepVals.length).toFixed(1)+"h":"—",accent:C.silver},
           {label:"WORKOUTS", val:`${wCount}/7`, accent:C.orange},
           {label:"MOOD",     val:moodVals.length?(moodVals.reduce((a,b)=>a+b)/moodVals.length).toFixed(1):"—",accent:C.pale},
-          {label:"WT Δ",     val:wts.length>=2?`${(wts.at(-1)-wts[0])>0?"+":""}${(wts.at(-1)-wts[0]).toFixed(1)}`:"—",accent:C.ghost},
+          {label:"WT Δ",     val:wts.length>=2?`${(wts.at(-1)-wts[0])>0?"+":""}${(wts.at(-1)-wts[0]).toFixed(1)}`:"—",accent:CYAN_HI},
         ].map(({label,val,accent})=>(
-          <div key={label} style={{background:C.surface,padding:"18px 14px"}}>
-            <div style={{fontSize:20,fontWeight:300,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{val}</div>
-            <Lbl style={{marginTop:8}}>{label}</Lbl>
+          <div key={label} style={{
+            background:C.surface,padding:"20px 14px",borderRadius:12,
+            border:`1px solid ${accent}33`,
+            boxShadow:`0 2px 6px ${SHADOW}`,
+          }}>
+            <div style={{fontSize:26,fontWeight:700,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{val}</div>
+            <Lbl style={{marginTop:10}}>{label}</Lbl>
           </div>
         ))}
       </div>
