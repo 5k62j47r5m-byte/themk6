@@ -325,7 +325,7 @@ const MuscleMap = ({vol}) => {
             L52,42
             C48,40 44,34 44,26
             C44,16 50,8 60,8 Z
-          " fill={SIL} opacity="0.55"/>
+          " fill={SIL}/>
 
           {/* TRAPS */}
           <path d="M48,46 Q60,42 72,46 Q66,54 60,54 Q54,54 48,46 Z" fill={g("Shoulders")} opacity="0.95"/>
