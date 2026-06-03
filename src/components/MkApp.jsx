@@ -1144,15 +1144,13 @@ export default function Mk1() {
           position:"sticky",top:0,height:"100vh",flexShrink:0,
         }} className="sidebar">
 
-          {/* Wordmark — "Mk.1" as the pun / version */}
-          <div style={{padding:"32px 24px 28px",borderBottom:`1px solid ${C.rule}`}}>
-            <div style={{fontSize:26,fontWeight:300,letterSpacing:"0.1em",color:C.white,lineHeight:1}}>
+          {/* Wordmark */}
+          <div style={{padding:"34px 24px 28px",borderBottom:`1px solid ${C.rule}`}}>
+            <div style={{fontSize:32,fontWeight:800,letterSpacing:"0.06em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
               {VERSION}
             </div>
-            {/* Subtle: version numbering echoes Mark's growth arc */}
-            <div style={{...T.micro,color:C.ghost,marginTop:6}}>Performance</div>
-            {/* Accent underline that changes with section */}
-            <div style={{width:24,height:1,background:p.primary,marginTop:12,transition:"background 0.3s"}}/>
+            <div style={{...T.micro,color:C.silver,marginTop:8}}>Performance</div>
+            <div style={{width:36,height:3,background:`linear-gradient(90deg,${p.primary},${p.secondary})`,marginTop:14,borderRadius:999,transition:"background 0.3s"}}/>
           </div>
 
           <nav style={{flex:1,padding:"18px 0"}}>
