@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      mk_state: {
+        Row: {
+          id: string
+          maxw: Json
+          metrics: Json
+          sleep: Json
+          tasks: Json
+          updated_at: string
+          workouts: Json
+        }
+        Insert: {
+          id?: string
+          maxw?: Json
+          metrics?: Json
+          sleep?: Json
+          tasks?: Json
+          updated_at?: string
+          workouts?: Json
+        }
+        Update: {
+          id?: string
+          maxw?: Json
+          metrics?: Json
+          sleep?: Json
+          tasks?: Json
+          updated_at?: string
+          workouts?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
