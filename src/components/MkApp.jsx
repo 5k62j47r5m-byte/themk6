@@ -14,19 +14,23 @@ import { supabase } from "@/integrations/supabase/client";
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
-// Three brand colors + tonal variants derived from them for depth, borders,
-// shadows, and hover states. Nothing outside this yellow / cyan / graphite family.
+// Vibrant 3-hue system + tonal variants. Brighter accents, deeper shadows
+// for vibrancy. Same family: yellow / cyan / graphite.
 const YELLOW    = "#ffe556";
-const YELLOW_HI = "#fff09a";  // hover / highlight
-const YELLOW_LO = "#b89a2e";  // pressed / dim
+const YELLOW_HI = "#fff7b0";  // bright highlight
+const YELLOW_LO = "#d4b32a";  // pressed
+const YELLOW_DK = "#8a6f15";  // deep outline
 const CYAN      = "#00bcf0";
-const CYAN_HI   = "#5cd4f6";
-const CYAN_LO   = "#0a7a9c";
-const GRAPH     = "#303539";  // base canvas
-const GRAPH_DK  = "#22262a";  // recessed (inputs, wells)
-const GRAPH_HI  = "#3c4248";  // raised (cards)
-const GRAPH_HI2 = "#484e55";  // raised + hover
-const SHADOW    = "rgba(0,0,0,0.35)";
+const CYAN_HI   = "#5fdcff";  // bright highlight
+const CYAN_LO   = "#0a7a9c";  // pressed / outline
+const CYAN_DK   = "#064a60";  // deep outline
+const GRAPH     = "#2c3236";  // base canvas (lightened a touch)
+const GRAPH_DK  = "#1d2124";  // recessed wells
+const GRAPH_HI  = "#3a4148";  // raised cards
+const GRAPH_HI2 = "#4a525a";  // hover / raised+
+const SHADOW    = "rgba(0,0,0,0.45)";
+const GLOW_Y    = "rgba(255,229,86,0.35)";
+const GLOW_C    = "rgba(0,188,240,0.35)";
 
 const C = {
   void:      GRAPH_DK,
@@ -42,10 +46,10 @@ const C = {
   white:     YELLOW,
   silver:    CYAN,
   pale:      YELLOW_HI,
-  ghost:     CYAN_LO,
+  ghost:     "#8a949c",   // neutral muted text — readable on dark
   charcoal:  GRAPH_DK,
 
-  rule:      CYAN_LO,
+  rule:      "#4a525a",
   shadow:    SHADOW,
 };
 
@@ -58,7 +62,7 @@ const SP = {
   week:    { primary: CYAN,   secondary: YELLOW },
 };
 
-const VERSION = "The Mk6";
+const VERSION = "The Mk7";
 
 const SECTIONS = [
   { id:"home",    label:"HOME",    Icon: HomeIcon     },
