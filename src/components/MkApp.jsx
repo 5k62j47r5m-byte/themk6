@@ -599,7 +599,8 @@ const Workout = ({data,setData,date,setDate}) => {
   const [reps,setReps]=useState("10");
   const [wt,setWt]=useState("");
   const [notes,setNotes]=useState("");
-  const [maxW,setMaxW]=useLS("mk1_maxw",{});
+  const maxW = data.maxw || {};
+  const setMaxW = (v) => setData({...data, maxw: v});
 
   const day=data.workouts[date]||{exercises:[]};
   const vol={};
