@@ -1079,18 +1079,18 @@ const Week = ({data}) => {
 export default function Mk1() {
   const [active,setActive]=useState("home");
   const [date,setDate]=useState(today());
-  const [workouts,setWorkouts]=useLS("mk1_workouts",{});
-  const [sleep,setSleep]=useLS("mk1_sleep",{});
-  const [tasks,setTasks]=useLS("mk1_tasks",{});
-  const [metrics,setMetrics]=useLS("mk1_metrics",{});
-  const [streaks,setStreaks]=useLS("mk1_streaks",{});
+  const [data,saveCloud,loaded]=useCloud();
+  const {workouts,sleep,tasks,metrics}=data;
+  const [streaks,setStreaks]=useState({});
 
-  const data={workouts,sleep,tasks,metrics};
   const setData=nd=>{
-    if(nd.workouts!==workouts)setWorkouts(nd.workouts);
-    if(nd.sleep!==sleep)setSleep(nd.sleep);
-    if(nd.tasks!==tasks)setTasks(nd.tasks);
-    if(nd.metrics!==metrics)setMetrics(nd.metrics);
+    const patch={};
+    if(nd.workouts!==workouts) patch.workouts=nd.workouts;
+    if(nd.sleep!==sleep)       patch.sleep=nd.sleep;
+    if(nd.tasks!==tasks)       patch.tasks=nd.tasks;
+    if(nd.metrics!==metrics)   patch.metrics=nd.metrics;
+    if(nd.maxw && nd.maxw!==data.maxw) patch.maxw=nd.maxw;
+    if(Object.keys(patch).length) saveCloud(patch);
   };
 
   useEffect(()=>{
