@@ -415,23 +415,24 @@ const Sel = ({children,style={},...p}) => (
 
 const Btn = ({children,onClick,accent=C.orange,style={}}) => (
   <button onClick={onClick} style={{
-    background:`${accent}10`,border:`1px solid ${accent}`,
-    color:accent,fontSize:9,letterSpacing:"0.22em",
-    padding:"12px 20px",cursor:"pointer",
-    fontFamily:"inherit",fontWeight:600,borderRadius:2,
-    boxShadow:`0 1px 0 ${SHADOW}, inset 0 1px 0 ${accent}22`,
-    textTransform:"uppercase",transition:"all 0.15s ease",...style,
+    background:`linear-gradient(180deg, ${accent}28, ${accent}10)`,
+    border:`1.5px solid ${accent}`,
+    color:accent,fontSize:11,letterSpacing:"0.2em",
+    padding:"14px 24px",cursor:"pointer",
+    fontFamily:"inherit",fontWeight:800,borderRadius:999,
+    boxShadow:`0 2px 0 ${SHADOW}, inset 0 1px 0 ${accent}33`,
+    textTransform:"uppercase",transition:"all 0.18s ease",...style,
   }}
     onMouseEnter={e=>{
-      e.currentTarget.style.background=accent;
+      e.currentTarget.style.background=`linear-gradient(180deg, ${accent}, ${accent}cc)`;
       e.currentTarget.style.color=GRAPH_DK;
-      e.currentTarget.style.boxShadow=`0 4px 12px ${accent}55, inset 0 1px 0 ${accent}`;
-      e.currentTarget.style.transform="translateY(-1px)";
+      e.currentTarget.style.boxShadow=`0 6px 18px ${accent}66, inset 0 1px 0 ${accent}`;
+      e.currentTarget.style.transform="translateY(-2px)";
     }}
     onMouseLeave={e=>{
-      e.currentTarget.style.background=`${accent}10`;
+      e.currentTarget.style.background=`linear-gradient(180deg, ${accent}28, ${accent}10)`;
       e.currentTarget.style.color=accent;
-      e.currentTarget.style.boxShadow=`0 1px 0 ${SHADOW}, inset 0 1px 0 ${accent}22`;
+      e.currentTarget.style.boxShadow=`0 2px 0 ${SHADOW}, inset 0 1px 0 ${accent}33`;
       e.currentTarget.style.transform="translateY(0)";
     }}
   >{children}</button>
@@ -439,8 +440,8 @@ const Btn = ({children,onClick,accent=C.orange,style={}}) => (
 
 const Chip = ({label,color=C.silver}) => (
   <span style={{
-    ...T.micro,padding:"3px 8px",
-    border:`1px solid ${color}55`,color,background:`${color}0F`,
+    ...T.micro,padding:"4px 10px",borderRadius:999,
+    border:`1.5px solid ${color}`,color,background:`${color}1a`,
   }}>{label}</span>
 );
 
@@ -448,8 +449,8 @@ const DatePicker = ({date,setDate,accent=C.orange}) => (
   <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:32}}>
     <Lbl>Date</Lbl>
     <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{
-      background:"transparent",border:"none",borderBottom:`1px solid ${C.rim}`,
-      color:C.white,fontSize:13,padding:"4px 0",outline:"none",
+      background:"transparent",border:"none",borderBottom:`2px solid ${C.rim}`,
+      color:C.white,fontSize:15,fontWeight:600,padding:"4px 0",outline:"none",
       fontFamily:"inherit",letterSpacing:"0.04em",colorScheme:"dark",
     }}/>
   </div>
@@ -461,15 +462,19 @@ const Empty = ({text}) => (
   </div>
 );
 
-const Dash = () => <span style={{color:C.rim,fontSize:14}}>—</span>;
+const Dash = () => <span style={{color:C.rim,fontSize:16,fontWeight:600}}>—</span>;
 
 const StatTile = ({label,value,accent,style={}}) => (
   <div style={{
-    flex:1,background:C.surface,padding:"18px 14px",
-    borderBottom:`2px solid ${accent}`,...style,
+    flex:1,background:`linear-gradient(160deg, ${C.surface}, ${C.base})`,
+    padding:"22px 16px",borderRadius:14,
+    border:`1px solid ${accent}44`,
+    borderBottom:`3px solid ${accent}`,
+    boxShadow:`0 4px 12px ${SHADOW}, inset 0 1px 0 ${accent}22`,
+    ...style,
   }}>
-    <div style={{fontSize:26,fontWeight:300,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{value}</div>
-    <Lbl style={{marginTop:8}}>{label}</Lbl>
+    <div style={{fontSize:34,fontWeight:700,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1,textShadow:`0 0 18px ${accent}55`}}>{value}</div>
+    <Lbl style={{marginTop:10}}>{label}</Lbl>
   </div>
 );
 
