@@ -1186,9 +1186,9 @@ export default function Mk1() {
         <main style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
           <div style={{
             padding:"22px 36px 18px",borderBottom:`1px solid ${C.rule}`,
-            background:C.base,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
+            background:`linear-gradient(180deg, ${C.base}, ${C.void})`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div style={{fontSize:22,fontWeight:300,letterSpacing:"0.12em",color:C.white,lineHeight:1,textAlign:"center"}}>
+            <div style={{fontSize:28,fontWeight:800,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
               {VERSION}
             </div>
           </div>
