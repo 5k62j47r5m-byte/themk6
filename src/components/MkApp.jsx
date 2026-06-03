@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
 // Thragg:       #C84B20 brick-orange · #9AA4AE battleship grey · #2A2C2E charcoal
@@ -13,19 +14,23 @@ import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } 
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
-// Three brand colors + tonal variants derived from them for depth, borders,
-// shadows, and hover states. Nothing outside this yellow / cyan / graphite family.
+// Vibrant 3-hue system + tonal variants. Brighter accents, deeper shadows
+// for vibrancy. Same family: yellow / cyan / graphite.
 const YELLOW    = "#ffe556";
-const YELLOW_HI = "#fff09a";  // hover / highlight
-const YELLOW_LO = "#b89a2e";  // pressed / dim
+const YELLOW_HI = "#fff7b0";  // bright highlight
+const YELLOW_LO = "#d4b32a";  // pressed
+const YELLOW_DK = "#8a6f15";  // deep outline
 const CYAN      = "#00bcf0";
-const CYAN_HI   = "#5cd4f6";
-const CYAN_LO   = "#0a7a9c";
-const GRAPH     = "#303539";  // base canvas
-const GRAPH_DK  = "#22262a";  // recessed (inputs, wells)
-const GRAPH_HI  = "#3c4248";  // raised (cards)
-const GRAPH_HI2 = "#484e55";  // raised + hover
-const SHADOW    = "rgba(0,0,0,0.35)";
+const CYAN_HI   = "#5fdcff";  // bright highlight
+const CYAN_LO   = "#0a7a9c";  // pressed / outline
+const CYAN_DK   = "#064a60";  // deep outline
+const GRAPH     = "#2c3236";  // base canvas (lightened a touch)
+const GRAPH_DK  = "#1d2124";  // recessed wells
+const GRAPH_HI  = "#3a4148";  // raised cards
+const GRAPH_HI2 = "#4a525a";  // hover / raised+
+const SHADOW    = "rgba(0,0,0,0.45)";
+const GLOW_Y    = "rgba(255,229,86,0.35)";
+const GLOW_C    = "rgba(0,188,240,0.35)";
 
 const C = {
   void:      GRAPH_DK,
@@ -41,10 +46,10 @@ const C = {
   white:     YELLOW,
   silver:    CYAN,
   pale:      YELLOW_HI,
-  ghost:     CYAN_LO,
+  ghost:     "#8a949c",   // neutral muted text — readable on dark
   charcoal:  GRAPH_DK,
 
-  rule:      CYAN_LO,
+  rule:      "#4a525a",
   shadow:    SHADOW,
 };
 
@@ -57,7 +62,7 @@ const SP = {
   week:    { primary: CYAN,   secondary: YELLOW },
 };
 
-const VERSION = "The Mk6";
+const VERSION = "The Mk7";
 
 const SECTIONS = [
   { id:"home",    label:"HOME",    Icon: HomeIcon     },
@@ -133,6 +138,44 @@ const useLS = (key, init) => {
   const [v,sv] = useState(() => { try { const s=localStorage.getItem(key); return s?JSON.parse(s):init; } catch { return init; }});
   const set = useCallback(val => { sv(val); try { localStorage.setItem(key,JSON.stringify(val)); } catch {} }, [key]);
   return [v,set];
+};
+
+// Shared cloud singleton — every device sees the same logs in real time.
+const EMPTY = {workouts:{},sleep:{},tasks:{},metrics:{},maxw:{}};
+const useCloud = () => {
+  const [state,setState] = useState(EMPTY);
+  const [loaded,setLoaded] = useState(false);
+  useEffect(()=>{
+    let alive=true;
+    supabase.from("mk_state").select("*").eq("id","singleton").maybeSingle().then(({data})=>{
+      if(!alive) return;
+      if(data) setState({
+        workouts:data.workouts||{}, sleep:data.sleep||{},
+        tasks:data.tasks||{}, metrics:data.metrics||{}, maxw:data.maxw||{},
+      });
+      setLoaded(true);
+    });
+    const ch = supabase.channel("mk_state_rt")
+      .on("postgres_changes",{event:"*",schema:"public",table:"mk_state"},(p)=>{
+        const r=p.new;if(!r)return;
+        setState({
+          workouts:r.workouts||{}, sleep:r.sleep||{},
+          tasks:r.tasks||{}, metrics:r.metrics||{}, maxw:r.maxw||{},
+        });
+      }).subscribe();
+    return ()=>{alive=false;supabase.removeChannel(ch);};
+  },[]);
+  const save = useCallback((patch)=>{
+    setState(prev=>{
+      const next={...prev,...patch};
+      supabase.from("mk_state").update({
+        workouts:next.workouts, sleep:next.sleep, tasks:next.tasks,
+        metrics:next.metrics, maxw:next.maxw, updated_at:new Date().toISOString(),
+      }).eq("id","singleton").then(({error})=>{ if(error) console.error("[mk_state]",error); });
+      return next;
+    });
+  },[]);
+  return [state,save,loaded];
 };
 
 const quotePool = () => QUOTES;
@@ -282,7 +325,7 @@ const MuscleMap = ({vol}) => {
             L52,42
             C48,40 44,34 44,26
             C44,16 50,8 60,8 Z
-          " fill={SIL} opacity="0.55"/>
+          " fill={SIL}/>
 
           {/* TRAPS */}
           <path d="M48,46 Q60,42 72,46 Q66,54 60,54 Q54,54 48,46 Z" fill={g("Shoulders")} opacity="0.95"/>
@@ -330,9 +373,9 @@ const MuscleMap = ({vol}) => {
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
 const T = {
-  micro: {fontSize:8,  letterSpacing:"0.22em", fontWeight:500, textTransform:"uppercase"},
-  label: {fontSize:10, letterSpacing:"0.18em", fontWeight:500, textTransform:"uppercase"},
-  body:  {fontSize:13, letterSpacing:"0.03em", fontWeight:400},
+  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase"},
+  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase"},
+  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500},
 };
 
 const Lbl = ({children,color=C.ghost,style={}}) => (
@@ -372,23 +415,24 @@ const Sel = ({children,style={},...p}) => (
 
 const Btn = ({children,onClick,accent=C.orange,style={}}) => (
   <button onClick={onClick} style={{
-    background:`${accent}10`,border:`1px solid ${accent}`,
-    color:accent,fontSize:9,letterSpacing:"0.22em",
-    padding:"12px 20px",cursor:"pointer",
-    fontFamily:"inherit",fontWeight:600,borderRadius:2,
-    boxShadow:`0 1px 0 ${SHADOW}, inset 0 1px 0 ${accent}22`,
-    textTransform:"uppercase",transition:"all 0.15s ease",...style,
+    background:`linear-gradient(180deg, ${accent}28, ${accent}10)`,
+    border:`1.5px solid ${accent}`,
+    color:accent,fontSize:11,letterSpacing:"0.2em",
+    padding:"14px 24px",cursor:"pointer",
+    fontFamily:"inherit",fontWeight:800,borderRadius:999,
+    boxShadow:`0 2px 0 ${SHADOW}, inset 0 1px 0 ${accent}33`,
+    textTransform:"uppercase",transition:"all 0.18s ease",...style,
   }}
     onMouseEnter={e=>{
-      e.currentTarget.style.background=accent;
+      e.currentTarget.style.background=`linear-gradient(180deg, ${accent}, ${accent}cc)`;
       e.currentTarget.style.color=GRAPH_DK;
-      e.currentTarget.style.boxShadow=`0 4px 12px ${accent}55, inset 0 1px 0 ${accent}`;
-      e.currentTarget.style.transform="translateY(-1px)";
+      e.currentTarget.style.boxShadow=`0 6px 18px ${accent}66, inset 0 1px 0 ${accent}`;
+      e.currentTarget.style.transform="translateY(-2px)";
     }}
     onMouseLeave={e=>{
-      e.currentTarget.style.background=`${accent}10`;
+      e.currentTarget.style.background=`linear-gradient(180deg, ${accent}28, ${accent}10)`;
       e.currentTarget.style.color=accent;
-      e.currentTarget.style.boxShadow=`0 1px 0 ${SHADOW}, inset 0 1px 0 ${accent}22`;
+      e.currentTarget.style.boxShadow=`0 2px 0 ${SHADOW}, inset 0 1px 0 ${accent}33`;
       e.currentTarget.style.transform="translateY(0)";
     }}
   >{children}</button>
@@ -396,8 +440,8 @@ const Btn = ({children,onClick,accent=C.orange,style={}}) => (
 
 const Chip = ({label,color=C.silver}) => (
   <span style={{
-    ...T.micro,padding:"3px 8px",
-    border:`1px solid ${color}55`,color,background:`${color}0F`,
+    ...T.micro,padding:"4px 10px",borderRadius:999,
+    border:`1.5px solid ${color}`,color,background:`${color}1a`,
   }}>{label}</span>
 );
 
@@ -405,8 +449,8 @@ const DatePicker = ({date,setDate,accent=C.orange}) => (
   <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:32}}>
     <Lbl>Date</Lbl>
     <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{
-      background:"transparent",border:"none",borderBottom:`1px solid ${C.rim}`,
-      color:C.white,fontSize:13,padding:"4px 0",outline:"none",
+      background:"transparent",border:"none",borderBottom:`2px solid ${C.rim}`,
+      color:C.white,fontSize:15,fontWeight:600,padding:"4px 0",outline:"none",
       fontFamily:"inherit",letterSpacing:"0.04em",colorScheme:"dark",
     }}/>
   </div>
@@ -418,15 +462,19 @@ const Empty = ({text}) => (
   </div>
 );
 
-const Dash = () => <span style={{color:C.rim,fontSize:14}}>—</span>;
+const Dash = () => <span style={{color:C.rim,fontSize:16,fontWeight:600}}>—</span>;
 
 const StatTile = ({label,value,accent,style={}}) => (
   <div style={{
-    flex:1,background:C.surface,padding:"18px 14px",
-    borderBottom:`2px solid ${accent}`,...style,
+    flex:1,background:`linear-gradient(160deg, ${C.surface}, ${C.base})`,
+    padding:"22px 16px",borderRadius:14,
+    border:`1px solid ${accent}44`,
+    borderBottom:`3px solid ${accent}`,
+    boxShadow:`0 4px 12px ${SHADOW}, inset 0 1px 0 ${accent}22`,
+    ...style,
   }}>
-    <div style={{fontSize:26,fontWeight:300,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{value}</div>
-    <Lbl style={{marginTop:8}}>{label}</Lbl>
+    <div style={{fontSize:34,fontWeight:700,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1,textShadow:`0 0 18px ${accent}55`}}>{value}</div>
+    <Lbl style={{marginTop:10}}>{label}</Lbl>
   </div>
 );
 
@@ -476,64 +524,84 @@ const Home = ({data,streaks}) => {
 
   return (
     <div>
-      {/* Quote — Thragg orange left border, cycles every 20s */}
-      <div style={{borderLeft:`2px solid ${C.orange}`,paddingLeft:20,paddingBottom:32,marginBottom:32,borderBottom:`1px solid ${C.rule}`}}>
+      {/* Quote — bold left bar, bigger heft */}
+      <div style={{
+        borderLeft:`4px solid ${C.orange}`,paddingLeft:24,paddingBottom:32,marginBottom:36,
+        borderBottom:`1px solid ${C.rule}`,
+      }}>
         <Lbl color={C.orange} style={{marginBottom:14}}>Today</Lbl>
-        <div key={qIdx} style={{fontSize:16,fontWeight:300,color:C.white,lineHeight:1.65,letterSpacing:"0.02em",fontStyle:"italic",maxWidth:460,animation:"up 0.4s ease"}}>
+        <div key={qIdx} style={{
+          fontSize:22,fontWeight:600,color:C.white,lineHeight:1.45,letterSpacing:"0.005em",
+          fontStyle:"italic",maxWidth:520,animation:"up 0.4s ease",textShadow:`0 0 24px ${GLOW_Y}33`,
+        }}>
           "{quote}"
         </div>
       </div>
 
 
-      {/* Streaks — orange/silver split */}
+      {/* Streaks */}
       <Lbl style={{marginBottom:18}}>Streaks</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:36}}>
         {[
           {label:"WORKOUT",val:streaks.workout||0,accent:C.orange},
           {label:"SLEEP",  val:streaks.sleep||0,  accent:C.silver},
           {label:"MOOD",   val:streaks.mood||0,   accent:C.pale},
-          {label:"WEIGHT", val:streaks.weight||0, accent:C.ghost},
+          {label:"WEIGHT", val:streaks.weight||0, accent:CYAN_HI},
         ].map(({label,val,accent})=>(
-          <div key={label} style={{background:C.surface,padding:"20px 16px",borderBottom:`2px solid ${val>0?accent:C.rule}`}}>
-            <div style={{fontSize:28,fontWeight:300,color:val>0?accent:C.ghost,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{val>0?val:"—"}</div>
-            <Lbl style={{marginTop:8}}>{label}</Lbl>
-            {/* Subtle "days" label — nod to Viltrumite lifespan obsession */}
-            {val>0&&<div style={{fontSize:7,color:accent+"66",letterSpacing:"0.2em",marginTop:3}}>DAY{val!==1?"S":""}</div>}
+          <div key={label} style={{
+            background:`linear-gradient(160deg, ${C.surface}, ${C.base})`,
+            padding:"22px 14px",borderRadius:14,
+            border:`1px solid ${val>0?accent+"55":C.rule}`,
+            borderBottom:`3px solid ${val>0?accent:C.rule}`,
+            boxShadow:val>0?`0 4px 16px ${accent}33`:`0 2px 6px ${SHADOW}`,
+          }}>
+            <div style={{fontSize:38,fontWeight:800,color:val>0?accent:C.ghost,fontVariantNumeric:"tabular-nums",lineHeight:1,textShadow:val>0?`0 0 18px ${accent}66`:"none"}}>{val>0?val:"—"}</div>
+            <Lbl style={{marginTop:10}}>{label}</Lbl>
+            {val>0&&<div style={{fontSize:9,fontWeight:700,color:accent+"99",letterSpacing:"0.22em",marginTop:4}}>DAY{val!==1?"S":""}</div>}
           </div>
         ))}
       </div>
 
-      {/* Status — secondary accent per module */}
+      {/* Status */}
       <Lbl style={{marginBottom:18}}>Status</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:36}}>
         {[
           {label:"WORKOUT",logged:!!w,detail:w?`${w.exercises?.length||0} exercises`:"Not logged",accent:SP.workout.primary},
           {label:"SLEEP",  logged:!!s,detail:s?`${s.hours}h · ${s.quality}`:"Not logged",          accent:SP.sleep.primary},
           {label:"TASKS",  logged:tk.length>0,detail:tk.length>0?`${tk.filter(x=>x.done).length}/${tk.length} done`:"Nothing added",accent:SP.tasks.primary},
           {label:"METRICS",logged:!!m,detail:m?`${m.weight||"—"} lbs · ${m.mood||"—"}/5`:"Not logged",accent:SP.metrics.primary},
         ].map(item=>(
-          <div key={item.label} style={{background:C.surface,padding:"18px 16px",borderBottom:`1px solid ${item.logged?item.accent:C.rule}`}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+          <div key={item.label} style={{
+            background:C.surface,padding:"20px 18px",borderRadius:12,
+            border:`1px solid ${item.logged?item.accent+"55":C.rule}`,
+            borderLeft:`4px solid ${item.logged?item.accent:C.rule}`,
+            boxShadow:`0 2px 8px ${SHADOW}`,
+          }}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <Lbl>{item.label}</Lbl>
-              <span style={{fontSize:10,color:item.logged?"#55CC88":C.orange}}>{item.logged?"✓":"✗"}</span>
+              <span style={{fontSize:14,fontWeight:800,color:item.logged?"#55CC88":C.orange}}>{item.logged?"✓":"✗"}</span>
             </div>
-            <div style={{fontSize:12,color:item.logged?C.white:C.ghost,letterSpacing:"0.04em"}}>{item.detail}</div>
+            <div style={{fontSize:14,fontWeight:600,color:item.logged?C.white:C.ghost,letterSpacing:"0.02em"}}>{item.detail}</div>
           </div>
         ))}
       </div>
 
       {/* Week avg */}
       <Lbl style={{marginBottom:18}}>Week Average</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:1}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
         {[
           {label:"SLEEP",    val:sleepVals.length?(sleepVals.reduce((a,b)=>a+b)/sleepVals.length).toFixed(1)+"h":"—",accent:C.silver},
           {label:"WORKOUTS", val:`${wCount}/7`, accent:C.orange},
           {label:"MOOD",     val:moodVals.length?(moodVals.reduce((a,b)=>a+b)/moodVals.length).toFixed(1):"—",accent:C.pale},
-          {label:"WT Δ",     val:wts.length>=2?`${(wts.at(-1)-wts[0])>0?"+":""}${(wts.at(-1)-wts[0]).toFixed(1)}`:"—",accent:C.ghost},
+          {label:"WT Δ",     val:wts.length>=2?`${(wts.at(-1)-wts[0])>0?"+":""}${(wts.at(-1)-wts[0]).toFixed(1)}`:"—",accent:CYAN_HI},
         ].map(({label,val,accent})=>(
-          <div key={label} style={{background:C.surface,padding:"18px 14px"}}>
-            <div style={{fontSize:20,fontWeight:300,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{val}</div>
-            <Lbl style={{marginTop:8}}>{label}</Lbl>
+          <div key={label} style={{
+            background:C.surface,padding:"20px 14px",borderRadius:12,
+            border:`1px solid ${accent}33`,
+            boxShadow:`0 2px 6px ${SHADOW}`,
+          }}>
+            <div style={{fontSize:26,fontWeight:700,color:accent,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{val}</div>
+            <Lbl style={{marginTop:10}}>{label}</Lbl>
           </div>
         ))}
       </div>
@@ -551,7 +619,8 @@ const Workout = ({data,setData,date,setDate}) => {
   const [reps,setReps]=useState("10");
   const [wt,setWt]=useState("");
   const [notes,setNotes]=useState("");
-  const [maxW,setMaxW]=useLS("mk1_maxw",{});
+  const maxW = data.maxw || {};
+  const setMaxW = (v) => setData({...data, maxw: v});
 
   const day=data.workouts[date]||{exercises:[]};
   const vol={};
@@ -1030,18 +1099,18 @@ const Week = ({data}) => {
 export default function Mk1() {
   const [active,setActive]=useState("home");
   const [date,setDate]=useState(today());
-  const [workouts,setWorkouts]=useLS("mk1_workouts",{});
-  const [sleep,setSleep]=useLS("mk1_sleep",{});
-  const [tasks,setTasks]=useLS("mk1_tasks",{});
-  const [metrics,setMetrics]=useLS("mk1_metrics",{});
-  const [streaks,setStreaks]=useLS("mk1_streaks",{});
+  const [data,saveCloud,loaded]=useCloud();
+  const {workouts,sleep,tasks,metrics}=data;
+  const [streaks,setStreaks]=useState({});
 
-  const data={workouts,sleep,tasks,metrics};
   const setData=nd=>{
-    if(nd.workouts!==workouts)setWorkouts(nd.workouts);
-    if(nd.sleep!==sleep)setSleep(nd.sleep);
-    if(nd.tasks!==tasks)setTasks(nd.tasks);
-    if(nd.metrics!==metrics)setMetrics(nd.metrics);
+    const patch={};
+    if(nd.workouts!==workouts) patch.workouts=nd.workouts;
+    if(nd.sleep!==sleep)       patch.sleep=nd.sleep;
+    if(nd.tasks!==tasks)       patch.tasks=nd.tasks;
+    if(nd.metrics!==metrics)   patch.metrics=nd.metrics;
+    if(nd.maxw && nd.maxw!==data.maxw) patch.maxw=nd.maxw;
+    if(Object.keys(patch).length) saveCloud(patch);
   };
 
   useEffect(()=>{
@@ -1095,15 +1164,13 @@ export default function Mk1() {
           position:"sticky",top:0,height:"100vh",flexShrink:0,
         }} className="sidebar">
 
-          {/* Wordmark — "Mk.1" as the pun / version */}
-          <div style={{padding:"32px 24px 28px",borderBottom:`1px solid ${C.rule}`}}>
-            <div style={{fontSize:26,fontWeight:300,letterSpacing:"0.1em",color:C.white,lineHeight:1}}>
+          {/* Wordmark */}
+          <div style={{padding:"34px 24px 28px",borderBottom:`1px solid ${C.rule}`}}>
+            <div style={{fontSize:32,fontWeight:800,letterSpacing:"0.06em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
               {VERSION}
             </div>
-            {/* Subtle: version numbering echoes Mark's growth arc */}
-            <div style={{...T.micro,color:C.ghost,marginTop:6}}>Performance</div>
-            {/* Accent underline that changes with section */}
-            <div style={{width:24,height:1,background:p.primary,marginTop:12,transition:"background 0.3s"}}/>
+            <div style={{...T.micro,color:C.silver,marginTop:8}}>Performance</div>
+            <div style={{width:36,height:3,background:`linear-gradient(90deg,${p.primary},${p.secondary})`,marginTop:14,borderRadius:999,transition:"background 0.3s"}}/>
           </div>
 
           <nav style={{flex:1,padding:"18px 0"}}>
@@ -1139,9 +1206,9 @@ export default function Mk1() {
         <main style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
           <div style={{
             padding:"22px 36px 18px",borderBottom:`1px solid ${C.rule}`,
-            background:C.base,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
+            background:`linear-gradient(180deg, ${C.base}, ${C.void})`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div style={{fontSize:22,fontWeight:300,letterSpacing:"0.12em",color:C.white,lineHeight:1,textAlign:"center"}}>
+            <div style={{fontSize:28,fontWeight:800,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
               {VERSION}
             </div>
           </div>
