@@ -140,6 +140,44 @@ const useLS = (key, init) => {
   return [v,set];
 };
 
+// Shared cloud singleton — every device sees the same logs in real time.
+const EMPTY = {workouts:{},sleep:{},tasks:{},metrics:{},maxw:{}};
+const useCloud = () => {
+  const [state,setState] = useState(EMPTY);
+  const [loaded,setLoaded] = useState(false);
+  useEffect(()=>{
+    let alive=true;
+    supabase.from("mk_state").select("*").eq("id","singleton").maybeSingle().then(({data})=>{
+      if(!alive) return;
+      if(data) setState({
+        workouts:data.workouts||{}, sleep:data.sleep||{},
+        tasks:data.tasks||{}, metrics:data.metrics||{}, maxw:data.maxw||{},
+      });
+      setLoaded(true);
+    });
+    const ch = supabase.channel("mk_state_rt")
+      .on("postgres_changes",{event:"*",schema:"public",table:"mk_state"},(p)=>{
+        const r=p.new;if(!r)return;
+        setState({
+          workouts:r.workouts||{}, sleep:r.sleep||{},
+          tasks:r.tasks||{}, metrics:r.metrics||{}, maxw:r.maxw||{},
+        });
+      }).subscribe();
+    return ()=>{alive=false;supabase.removeChannel(ch);};
+  },[]);
+  const save = useCallback((patch)=>{
+    setState(prev=>{
+      const next={...prev,...patch};
+      supabase.from("mk_state").update({
+        workouts:next.workouts, sleep:next.sleep, tasks:next.tasks,
+        metrics:next.metrics, maxw:next.maxw, updated_at:new Date().toISOString(),
+      }).eq("id","singleton").then(({error})=>{ if(error) console.error("[mk_state]",error); });
+      return next;
+    });
+  },[]);
+  return [state,save,loaded];
+};
+
 const quotePool = () => QUOTES;
 
 const calcTier = (lift,val) => {
