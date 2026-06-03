@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
 // Thragg:       #C84B20 brick-orange · #9AA4AE battleship grey · #2A2C2E charcoal
