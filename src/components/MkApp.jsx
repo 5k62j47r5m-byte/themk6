@@ -65,7 +65,7 @@ const SP = {
   week:    { primary: YELLOW, secondary: CYAN   },
 };
 
-const VERSION = "The Mk7";
+const VERSION = "The Mk16";
 
 const SECTIONS = [
   { id:"home",    label:"HOME",    Icon: HomeIcon     },
@@ -78,23 +78,49 @@ const SECTIONS = [
 
 const MUSCLE_GROUPS = ["Chest","Back","Shoulders","Biceps","Triceps","Legs","Glutes","Core","Calves"];
 const PRESETS = {
-  Chest:    ["Bench Press","Incline Press","Cable Fly","Dip","Push-up"],
-  Back:     ["Pull-up","Barbell Row","Lat Pulldown","Seated Row","Face Pull"],
-  Shoulders:["OHP","Lateral Raise","Rear Delt Fly","Arnold Press"],
-  Biceps:   ["Barbell Curl","Hammer Curl","Cable Curl","Incline Curl"],
-  Triceps:  ["Skull Crusher","Pushdown","Close-Grip Bench","Overhead Ext"],
-  Legs:     ["Squat","RDL","Leg Press","Hack Squat","Leg Curl"],
-  Glutes:   ["Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Cable Kickback"],
-  Core:     ["Plank","Ab Wheel","Hanging Leg Raise","Dead Bug","Cable Crunch"],
-  Calves:   ["Standing Calf Raise","Seated Calf Raise"],
+  Chest:     ["Bench Press","Incline Bench Press","Decline Bench Press","Dumbbell Press","Incline DB Press","Cable Fly","Pec Deck","Dip","Push-up","Svend Press","Landmine Press","Floor Press"],
+  Back:      ["Pull-up","Chin-up","Barbell Row","Pendlay Row","T-Bar Row","Lat Pulldown","Seated Cable Row","Single-Arm DB Row","Face Pull","Straight-Arm Pulldown","Meadows Row","Deadlift","Rack Pull","Shrug"],
+  Shoulders: ["OHP","Seated DB Press","Arnold Press","Push Press","Lateral Raise","Cable Lateral","Rear Delt Fly","Reverse Pec Deck","Front Raise","Upright Row","Landmine Press"],
+  Biceps:    ["Barbell Curl","EZ Bar Curl","Hammer Curl","Incline DB Curl","Preacher Curl","Cable Curl","Concentration Curl","Spider Curl","Zottman Curl","Reverse Curl"],
+  Triceps:   ["Skull Crusher","Close-Grip Bench","Pushdown","Rope Pushdown","Overhead Extension","DB Overhead Ext","Dip (Triceps)","Diamond Push-up","JM Press","Kickback"],
+  Legs:      ["Squat","Front Squat","Hack Squat","Leg Press","Bulgarian Split Squat","Lunge","RDL","Stiff-Leg Deadlift","Leg Curl","Leg Extension","Goblet Squat","Box Squat","Sissy Squat"],
+  Glutes:    ["Hip Thrust","Barbell Glute Bridge","Sumo Deadlift","Cable Kickback","Step-Up","Bulgarian Split Squat","Single-Leg RDL","Frog Pump","Cable Pull-Through"],
+  Core:      ["Plank","Side Plank","Ab Wheel","Hanging Leg Raise","Knee Raise","Dead Bug","Cable Crunch","Russian Twist","Pallof Press","V-Up","Toes to Bar","Dragon Flag"],
+  Calves:    ["Standing Calf Raise","Seated Calf Raise","Leg Press Calf Raise","Donkey Calf Raise","Single-Leg Calf Raise","Jump Rope"],
 };
+
+// Strength standards (lbs) — Beginner / Intermediate / Advanced / Elite
 const STRENGTH_STDS = {
-  "Bench Press": [95,155,215,275],
-  "Barbell Row": [85,145,200,255],
-  "Squat":       [115,185,255,330],
-  "OHP":         [55,95,135,175],
-  "RDL":         [95,165,235,305],
-  "Pull-up":     [1,8,15,20],
+  "Bench Press":   [95,155,215,275],
+  "Incline Bench Press":[75,125,175,225],
+  "OHP":           [55,95,135,175],
+  "Push Press":    [75,120,165,210],
+  "Dip":           [0,15,30,55],
+  "Barbell Row":   [85,145,200,255],
+  "Pendlay Row":   [95,155,210,265],
+  "Pull-up":       [1,8,15,22],
+  "Deadlift":      [135,225,315,405],
+  "Squat":         [115,185,255,330],
+  "Front Squat":   [85,145,205,265],
+  "Leg Press":     [180,315,450,585],
+  "RDL":           [95,165,235,305],
+  "Hip Thrust":    [135,225,315,405],
+  "Barbell Curl":  [45,75,105,135],
+  "Skull Crusher": [45,75,105,135],
+  "Lateral Raise": [10,20,30,45],
+  "Standing Calf Raise":[95,155,225,295],
+};
+
+// Which muscle group each tracked lift trains (for tier→map integration)
+const LIFT_MUSCLE = {
+  "Bench Press":"Chest","Incline Bench Press":"Chest","Dip":"Chest",
+  "OHP":"Shoulders","Push Press":"Shoulders","Lateral Raise":"Shoulders",
+  "Barbell Row":"Back","Pendlay Row":"Back","Pull-up":"Back","Deadlift":"Back",
+  "Squat":"Legs","Front Squat":"Legs","Leg Press":"Legs","RDL":"Legs",
+  "Hip Thrust":"Glutes",
+  "Barbell Curl":"Biceps",
+  "Skull Crusher":"Triceps",
+  "Standing Calf Raise":"Calves",
 };
 const SLEEP_Q = ["Terrible","Poor","OK","Good","Perfect"];
 
