@@ -211,10 +211,21 @@ const quotePool = () => QUOTES;
 
 const calcTier = (lift,val) => {
   const s=STRENGTH_STDS[lift]; if(!s) return null;
-  if(val>=s[3]) return {label:"ELITE",    color:C.orange};
-  if(val>=s[2]) return {label:"ADVANCED", color:C.white};
-  if(val>=s[1]) return {label:"INTER",    color:C.silver};
-  return              {label:"BEGINNER",  color:C.ghost};
+  if(val>=s[3]) return {label:"ELITE",    color:YELLOW,    rank:4};
+  if(val>=s[2]) return {label:"ADVANCED", color:CYAN_HI,   rank:3};
+  if(val>=s[1]) return {label:"INTER",    color:CYAN,      rank:2};
+  return              {label:"BEGINNER",  color:YELLOW_LO, rank:1};
+};
+
+// Compute best tier per muscle from logged 1RMs
+const tiersByMuscle = (maxW={}) => {
+  const out={};
+  Object.entries(LIFT_MUSCLE).forEach(([lift,muscle])=>{
+    const v=parseFloat(maxW[lift]); if(!v) return;
+    const t=calcTier(lift,v); if(!t) return;
+    if(!out[muscle] || t.rank>out[muscle].rank) out[muscle]=t;
+  });
+  return out;
 };
 
 // ─── MUSCLE MAP GRADIENT ─────────────────────────────────────────────────────
