@@ -14,23 +14,23 @@ import { supabase } from "@/integrations/supabase/client";
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
-// Vibrant 3-hue system + tonal variants. Brighter accents, deeper shadows
-// for vibrancy. Same family: yellow / cyan / graphite.
+// Vibrant 3-hue system + tonal variants. Lighter graphite for less darkness,
+// balanced cyan/yellow distribution.
 const YELLOW    = "#ffe556";
-const YELLOW_HI = "#fff7b0";  // bright highlight
-const YELLOW_LO = "#d4b32a";  // pressed
-const YELLOW_DK = "#8a6f15";  // deep outline
-const CYAN      = "#00bcf0";
-const CYAN_HI   = "#5fdcff";  // bright highlight
-const CYAN_LO   = "#0a7a9c";  // pressed / outline
-const CYAN_DK   = "#064a60";  // deep outline
-const GRAPH     = "#2c3236";  // base canvas (lightened a touch)
-const GRAPH_DK  = "#1d2124";  // recessed wells
-const GRAPH_HI  = "#3a4148";  // raised cards
-const GRAPH_HI2 = "#4a525a";  // hover / raised+
-const SHADOW    = "rgba(0,0,0,0.45)";
-const GLOW_Y    = "rgba(255,229,86,0.35)";
-const GLOW_C    = "rgba(0,188,240,0.35)";
+const YELLOW_HI = "#fff7b0";
+const YELLOW_LO = "#d4b32a";
+const YELLOW_DK = "#8a6f15";
+const CYAN      = "#22d4ff";  // brighter cyan for balance against yellow
+const CYAN_HI   = "#7ce8ff";
+const CYAN_LO   = "#1190b8";
+const CYAN_DK   = "#0a5470";
+const GRAPH     = "#3a4248";  // lightened — less dark canvas
+const GRAPH_DK  = "#2a3035";  // recessed wells (also lighter)
+const GRAPH_HI  = "#4a535b";  // raised cards
+const GRAPH_HI2 = "#5a646e";  // hover
+const SHADOW    = "rgba(0,0,0,0.4)";
+const GLOW_Y    = "rgba(255,229,86,0.4)";
+const GLOW_C    = "rgba(34,212,255,0.45)";
 
 const C = {
   void:      GRAPH_DK,
@@ -39,27 +39,30 @@ const C = {
   raised:    GRAPH_HI2,
   rim:       CYAN_LO,
 
+  // "orange" name kept for legacy; semantically the warm accent (yellow)
   orange:    YELLOW,
   orangeHi:  YELLOW_HI,
   orangeDim: YELLOW_LO,
 
-  white:     YELLOW,
+  // cool accent family
+  white:     CYAN_HI,
   silver:    CYAN,
   pale:      YELLOW_HI,
-  ghost:     "#8a949c",   // neutral muted text — readable on dark
+  ghost:     "#a6b0b8",   // brighter muted text on lighter canvas
   charcoal:  GRAPH_DK,
 
-  rule:      "#4a525a",
+  rule:      "#5a646e",
   shadow:    SHADOW,
 };
 
+// Balanced: 3 cyan-primary, 3 yellow-primary across the nav
 const SP = {
   home:    { primary: YELLOW, secondary: CYAN   },
-  workout: { primary: YELLOW, secondary: CYAN   },
+  workout: { primary: CYAN,   secondary: YELLOW },
   sleep:   { primary: CYAN,   secondary: YELLOW },
   tasks:   { primary: YELLOW, secondary: CYAN   },
-  metrics: { primary: YELLOW, secondary: CYAN   },
-  week:    { primary: CYAN,   secondary: YELLOW },
+  metrics: { primary: CYAN,   secondary: YELLOW },
+  week:    { primary: YELLOW, secondary: CYAN   },
 };
 
 const VERSION = "The Mk7";
