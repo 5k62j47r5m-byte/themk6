@@ -241,8 +241,11 @@ const volColor = v => {
   return YELLOW;
 };
 
-const MuscleMap = ({vol}) => {
+const MuscleMap = ({vol, tiers = {}}) => {
   const g = m => volColor(vol[m]||0);
+  // Tier-colored stroke per muscle — integrates strength ranking into the map
+  const sk = m => tiers[m]?.color || "none";
+  const sw = m => tiers[m] ? 1.6 : 0;
 
   const stops = [
     ["ELITE", YELLOW],
@@ -253,141 +256,49 @@ const MuscleMap = ({vol}) => {
     ["NONE",  GRAPH],
   ];
 
-  // Heroic flying-pose silhouette: one fist raised, cape trailing.
-  // The silhouette outline reads as a generic muscular hero; muscle regions
-  // are painted with volume colors on top of the silhouette base.
   const SIL = C.charcoal;
+  const SILHOUETTE = "M60,8 C70,8 76,16 76,26 C76,34 72,40 68,42 L78,46 Q92,50 96,68 L108,80 Q112,84 108,92 L94,86 L88,80 L86,108 L82,148 Q86,170 84,196 L74,212 L66,212 L60,180 L54,212 L46,212 L36,196 Q34,170 38,148 L34,108 L32,80 L26,86 L12,92 Q8,84 12,80 L24,68 Q28,50 42,46 L52,42 C48,40 44,34 44,26 C44,16 50,8 60,8 Z";
 
   return (
     <div style={{display:"flex", gap:24, justifyContent:"center", alignItems:"flex-start", flexWrap:"wrap"}}>
 
-      {/* FRONT — heroic silhouette */}
+      {/* ANTERIOR */}
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Anterior</Lbl>
         <svg width="120" height="220" viewBox="0 0 120 220">
-          {/* (cape removed) */}
-
-          {/* Silhouette base — full body outline */}
-          <path d="
-            M60,8
-            C70,8 76,16 76,26
-            C76,34 72,40 68,42
-            L78,46
-            Q92,50 96,68
-            L108,80
-            Q112,84 108,92
-            L94,86
-            L88,80
-            L86,108
-            L82,148
-            Q86,170 84,196
-            L74,212
-            L66,212
-            L60,180
-            L54,212
-            L46,212
-            L36,196
-            Q34,170 38,148
-            L34,108
-            L32,80
-            L26,86
-            L12,92
-            Q8,84 12,80
-            L24,68
-            Q28,50 42,46
-            L52,42
-            C48,40 44,34 44,26
-            C44,16 50,8 60,8 Z
-          " fill={SIL}/>
-
-          {/* SHOULDERS / Delts */}
-          <ellipse cx="32" cy="58" rx="9" ry="11" fill={g("Shoulders")} opacity="0.92"/>
-          <ellipse cx="88" cy="58" rx="9" ry="11" fill={g("Shoulders")} opacity="0.92"/>
-
-          {/* CHEST — two pecs */}
-          <path d="M44,52 Q52,48 59,52 L59,74 Q52,78 44,74 Z" fill={g("Chest")} opacity="0.95"/>
-          <path d="M76,52 Q68,48 61,52 L61,74 Q68,78 76,74 Z" fill={g("Chest")} opacity="0.95"/>
-
-          {/* BICEPS */}
-          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Biceps")} opacity="0.92"/>
-          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Biceps")} opacity="0.92"/>
-
-          {/* CORE — abs panel */}
-          <rect x="46" y="76" width="28" height="42" rx="3" fill={g("Core")} opacity="0.92"/>
-          <line x1="60" y1="76" x2="60" y2="118" stroke={C.void} strokeWidth="0.7" opacity="0.55"/>
-          <line x1="46" y1="88" x2="74" y2="88" stroke={C.void} strokeWidth="0.5" opacity="0.45"/>
-          <line x1="46" y1="100" x2="74" y2="100" stroke={C.void} strokeWidth="0.5" opacity="0.45"/>
-
-          {/* QUADS */}
-          <path d="M44,124 Q40,128 40,168 L52,168 Q54,140 54,124 Z" fill={g("Legs")} opacity="0.92"/>
-          <path d="M76,124 Q80,128 80,168 L68,168 Q66,140 66,124 Z" fill={g("Legs")} opacity="0.92"/>
-
-          {/* CALVES — front view subtle */}
-          <ellipse cx="46" cy="186" rx="6" ry="10" fill={g("Calves")} opacity="0.85"/>
-          <ellipse cx="74" cy="186" rx="6" ry="10" fill={g("Calves")} opacity="0.85"/>
+          <path d={SILHOUETTE} fill={SIL}/>
+          <ellipse cx="32" cy="58" rx="9" ry="11" fill={g("Shoulders")} stroke={sk("Shoulders")} strokeWidth={sw("Shoulders")} opacity="0.95"/>
+          <ellipse cx="88" cy="58" rx="9" ry="11" fill={g("Shoulders")} stroke={sk("Shoulders")} strokeWidth={sw("Shoulders")} opacity="0.95"/>
+          <path d="M44,52 Q52,48 59,52 L59,74 Q52,78 44,74 Z" fill={g("Chest")} stroke={sk("Chest")} strokeWidth={sw("Chest")} opacity="0.95"/>
+          <path d="M76,52 Q68,48 61,52 L61,74 Q68,78 76,74 Z" fill={g("Chest")} stroke={sk("Chest")} strokeWidth={sw("Chest")} opacity="0.95"/>
+          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Biceps")} stroke={sk("Biceps")} strokeWidth={sw("Biceps")} opacity="0.95"/>
+          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Biceps")} stroke={sk("Biceps")} strokeWidth={sw("Biceps")} opacity="0.95"/>
+          <rect x="46" y="76" width="28" height="42" rx="3" fill={g("Core")} stroke={sk("Core")} strokeWidth={sw("Core")} opacity="0.95"/>
+          <line x1="60" y1="76" x2="60" y2="118" stroke={C.void} strokeWidth="0.7" opacity="0.5"/>
+          <line x1="46" y1="88" x2="74" y2="88" stroke={C.void} strokeWidth="0.5" opacity="0.4"/>
+          <line x1="46" y1="100" x2="74" y2="100" stroke={C.void} strokeWidth="0.5" opacity="0.4"/>
+          <path d="M44,124 Q40,128 40,168 L52,168 Q54,140 54,124 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <path d="M76,124 Q80,128 80,168 L68,168 Q66,140 66,124 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <ellipse cx="46" cy="186" rx="6" ry="10" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.9"/>
+          <ellipse cx="74" cy="186" rx="6" ry="10" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.9"/>
         </svg>
       </div>
 
-      {/* BACK — heroic silhouette */}
+      {/* POSTERIOR */}
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Posterior</Lbl>
         <svg width="120" height="220" viewBox="0 0 120 220">
-          {/* (cape removed) */}
-
-          {/* Silhouette base */}
-          <path d="
-            M60,8
-            C70,8 76,16 76,26
-            C76,34 72,40 68,42
-            L78,46
-            Q92,50 96,68
-            L108,80
-            Q112,84 108,92
-            L94,86
-            L88,80
-            L86,108
-            L82,148
-            Q86,170 84,196
-            L74,212
-            L66,212
-            L60,180
-            L54,212
-            L46,212
-            L36,196
-            Q34,170 38,148
-            L34,108
-            L32,80
-            L26,86
-            L12,92
-            Q8,84 12,80
-            L24,68
-            Q28,50 42,46
-            L52,42
-            C48,40 44,34 44,26
-            C44,16 50,8 60,8 Z
-          " fill={SIL}/>
-
-          {/* TRAPS */}
-          <path d="M48,46 Q60,42 72,46 Q66,54 60,54 Q54,54 48,46 Z" fill={g("Shoulders")} opacity="0.95"/>
-
-          {/* LATS — flared V */}
-          <path d="M40,52 Q26,72 32,108 L60,104 L88,108 Q94,72 80,52 Q70,56 60,56 Q50,56 40,52 Z" fill={g("Back")} opacity="0.92"/>
-
-          {/* TRICEPS */}
-          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Triceps")} opacity="0.92"/>
-          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Triceps")} opacity="0.92"/>
-
-          {/* GLUTES */}
-          <ellipse cx="50" cy="124" rx="11" ry="10" fill={g("Glutes")} opacity="0.95"/>
-          <ellipse cx="70" cy="124" rx="11" ry="10" fill={g("Glutes")} opacity="0.95"/>
-
-          {/* HAMSTRINGS */}
-          <path d="M44,136 Q40,140 40,170 L52,170 Q54,150 54,136 Z" fill={g("Legs")} opacity="0.92"/>
-          <path d="M76,136 Q80,140 80,170 L68,170 Q66,150 66,136 Z" fill={g("Legs")} opacity="0.92"/>
-
-          {/* CALVES */}
-          <ellipse cx="46" cy="188" rx="6" ry="12" fill={g("Calves")} opacity="0.95"/>
-          <ellipse cx="74" cy="188" rx="6" ry="12" fill={g("Calves")} opacity="0.95"/>
+          <path d={SILHOUETTE} fill={SIL}/>
+          <path d="M48,46 Q60,42 72,46 Q66,54 60,54 Q54,54 48,46 Z" fill={g("Shoulders")} stroke={sk("Shoulders")} strokeWidth={sw("Shoulders")} opacity="0.95"/>
+          <path d="M40,52 Q26,72 32,108 L60,104 L88,108 Q94,72 80,52 Q70,56 60,56 Q50,56 40,52 Z" fill={g("Back")} stroke={sk("Back")} strokeWidth={sw("Back")} opacity="0.95"/>
+          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Triceps")} stroke={sk("Triceps")} strokeWidth={sw("Triceps")} opacity="0.95"/>
+          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Triceps")} stroke={sk("Triceps")} strokeWidth={sw("Triceps")} opacity="0.95"/>
+          <ellipse cx="50" cy="124" rx="11" ry="10" fill={g("Glutes")} stroke={sk("Glutes")} strokeWidth={sw("Glutes")} opacity="0.95"/>
+          <ellipse cx="70" cy="124" rx="11" ry="10" fill={g("Glutes")} stroke={sk("Glutes")} strokeWidth={sw("Glutes")} opacity="0.95"/>
+          <path d="M44,136 Q40,140 40,170 L52,170 Q54,150 54,136 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <path d="M76,136 Q80,140 80,170 L68,170 Q66,150 66,136 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <ellipse cx="46" cy="188" rx="6" ry="12" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.95"/>
+          <ellipse cx="74" cy="188" rx="6" ry="12" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.95"/>
         </svg>
       </div>
 
@@ -397,7 +308,7 @@ const MuscleMap = ({vol}) => {
         <div style={{
           width:12,height:96,flexShrink:0,
           background:`linear-gradient(to top, ${GRAPH}, ${CYAN}55 20%, ${CYAN} 50%, ${YELLOW}cc 75%, ${YELLOW})`,
-          border:`1px solid ${CYAN}55`,marginBottom:8,
+          border:`1px solid ${CYAN}66`,marginBottom:10,
         }}/>
         {stops.map(([l,c],i)=>(
           <div key={l} style={{display:"flex",alignItems:"center",gap:7,marginBottom:i<stops.length-1?5:0}}>
@@ -405,6 +316,20 @@ const MuscleMap = ({vol}) => {
             <span style={{fontSize:8,letterSpacing:"0.18em",color:C.ghost,lineHeight:1}}>{l}</span>
           </div>
         ))}
+        {Object.keys(tiers).length>0 && (
+          <>
+            <Lbl style={{color:C.ghost,marginTop:14,marginBottom:8}}>Tier ring</Lbl>
+            {["BEGINNER","INTER","ADVANCED","ELITE"].map(t=>{
+              const c={BEGINNER:YELLOW_LO,INTER:CYAN,ADVANCED:CYAN_HI,ELITE:YELLOW}[t];
+              return (
+                <div key={t} style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
+                  <div style={{width:8,height:8,borderRadius:999,border:`1.5px solid ${c}`,background:"transparent"}}/>
+                  <span style={{fontSize:8,letterSpacing:"0.18em",color:C.ghost,lineHeight:1}}>{t}</span>
+                </div>
+              );
+            })}
+          </>
+        )}
       </div>
 
     </div>
