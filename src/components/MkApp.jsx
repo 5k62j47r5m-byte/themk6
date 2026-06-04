@@ -14,23 +14,23 @@ import { supabase } from "@/integrations/supabase/client";
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
-// Vibrant 3-hue system + tonal variants. Brighter accents, deeper shadows
-// for vibrancy. Same family: yellow / cyan / graphite.
+// Vibrant 3-hue system + tonal variants. Lighter graphite for less darkness,
+// balanced cyan/yellow distribution.
 const YELLOW    = "#ffe556";
-const YELLOW_HI = "#fff7b0";  // bright highlight
-const YELLOW_LO = "#d4b32a";  // pressed
-const YELLOW_DK = "#8a6f15";  // deep outline
-const CYAN      = "#00bcf0";
-const CYAN_HI   = "#5fdcff";  // bright highlight
-const CYAN_LO   = "#0a7a9c";  // pressed / outline
-const CYAN_DK   = "#064a60";  // deep outline
-const GRAPH     = "#2c3236";  // base canvas (lightened a touch)
-const GRAPH_DK  = "#1d2124";  // recessed wells
-const GRAPH_HI  = "#3a4148";  // raised cards
-const GRAPH_HI2 = "#4a525a";  // hover / raised+
-const SHADOW    = "rgba(0,0,0,0.45)";
-const GLOW_Y    = "rgba(255,229,86,0.35)";
-const GLOW_C    = "rgba(0,188,240,0.35)";
+const YELLOW_HI = "#fff7b0";
+const YELLOW_LO = "#d4b32a";
+const YELLOW_DK = "#8a6f15";
+const CYAN      = "#22d4ff";  // brighter cyan for balance against yellow
+const CYAN_HI   = "#7ce8ff";
+const CYAN_LO   = "#1190b8";
+const CYAN_DK   = "#0a5470";
+const GRAPH     = "#3a4248";  // lightened — less dark canvas
+const GRAPH_DK  = "#2a3035";  // recessed wells (also lighter)
+const GRAPH_HI  = "#4a535b";  // raised cards
+const GRAPH_HI2 = "#5a646e";  // hover
+const SHADOW    = "rgba(0,0,0,0.4)";
+const GLOW_Y    = "rgba(255,229,86,0.4)";
+const GLOW_C    = "rgba(34,212,255,0.45)";
 
 const C = {
   void:      GRAPH_DK,
@@ -39,30 +39,33 @@ const C = {
   raised:    GRAPH_HI2,
   rim:       CYAN_LO,
 
+  // "orange" name kept for legacy; semantically the warm accent (yellow)
   orange:    YELLOW,
   orangeHi:  YELLOW_HI,
   orangeDim: YELLOW_LO,
 
-  white:     YELLOW,
+  // cool accent family
+  white:     CYAN_HI,
   silver:    CYAN,
   pale:      YELLOW_HI,
-  ghost:     "#8a949c",   // neutral muted text — readable on dark
+  ghost:     "#a6b0b8",   // brighter muted text on lighter canvas
   charcoal:  GRAPH_DK,
 
-  rule:      "#4a525a",
+  rule:      "#5a646e",
   shadow:    SHADOW,
 };
 
+// Balanced: 3 cyan-primary, 3 yellow-primary across the nav
 const SP = {
   home:    { primary: YELLOW, secondary: CYAN   },
-  workout: { primary: YELLOW, secondary: CYAN   },
+  workout: { primary: CYAN,   secondary: YELLOW },
   sleep:   { primary: CYAN,   secondary: YELLOW },
   tasks:   { primary: YELLOW, secondary: CYAN   },
-  metrics: { primary: YELLOW, secondary: CYAN   },
-  week:    { primary: CYAN,   secondary: YELLOW },
+  metrics: { primary: CYAN,   secondary: YELLOW },
+  week:    { primary: YELLOW, secondary: CYAN   },
 };
 
-const VERSION = "The Mk7";
+const VERSION = "The Mk16";
 
 const SECTIONS = [
   { id:"home",    label:"HOME",    Icon: HomeIcon     },
@@ -75,23 +78,49 @@ const SECTIONS = [
 
 const MUSCLE_GROUPS = ["Chest","Back","Shoulders","Biceps","Triceps","Legs","Glutes","Core","Calves"];
 const PRESETS = {
-  Chest:    ["Bench Press","Incline Press","Cable Fly","Dip","Push-up"],
-  Back:     ["Pull-up","Barbell Row","Lat Pulldown","Seated Row","Face Pull"],
-  Shoulders:["OHP","Lateral Raise","Rear Delt Fly","Arnold Press"],
-  Biceps:   ["Barbell Curl","Hammer Curl","Cable Curl","Incline Curl"],
-  Triceps:  ["Skull Crusher","Pushdown","Close-Grip Bench","Overhead Ext"],
-  Legs:     ["Squat","RDL","Leg Press","Hack Squat","Leg Curl"],
-  Glutes:   ["Hip Thrust","Bulgarian Split Squat","Sumo Deadlift","Cable Kickback"],
-  Core:     ["Plank","Ab Wheel","Hanging Leg Raise","Dead Bug","Cable Crunch"],
-  Calves:   ["Standing Calf Raise","Seated Calf Raise"],
+  Chest:     ["Bench Press","Incline Bench Press","Decline Bench Press","Dumbbell Press","Incline DB Press","Cable Fly","Pec Deck","Dip","Push-up","Svend Press","Landmine Press","Floor Press"],
+  Back:      ["Pull-up","Chin-up","Barbell Row","Pendlay Row","T-Bar Row","Lat Pulldown","Seated Cable Row","Single-Arm DB Row","Face Pull","Straight-Arm Pulldown","Meadows Row","Deadlift","Rack Pull","Shrug"],
+  Shoulders: ["OHP","Seated DB Press","Arnold Press","Push Press","Lateral Raise","Cable Lateral","Rear Delt Fly","Reverse Pec Deck","Front Raise","Upright Row","Landmine Press"],
+  Biceps:    ["Barbell Curl","EZ Bar Curl","Hammer Curl","Incline DB Curl","Preacher Curl","Cable Curl","Concentration Curl","Spider Curl","Zottman Curl","Reverse Curl"],
+  Triceps:   ["Skull Crusher","Close-Grip Bench","Pushdown","Rope Pushdown","Overhead Extension","DB Overhead Ext","Dip (Triceps)","Diamond Push-up","JM Press","Kickback"],
+  Legs:      ["Squat","Front Squat","Hack Squat","Leg Press","Bulgarian Split Squat","Lunge","RDL","Stiff-Leg Deadlift","Leg Curl","Leg Extension","Goblet Squat","Box Squat","Sissy Squat"],
+  Glutes:    ["Hip Thrust","Barbell Glute Bridge","Sumo Deadlift","Cable Kickback","Step-Up","Bulgarian Split Squat","Single-Leg RDL","Frog Pump","Cable Pull-Through"],
+  Core:      ["Plank","Side Plank","Ab Wheel","Hanging Leg Raise","Knee Raise","Dead Bug","Cable Crunch","Russian Twist","Pallof Press","V-Up","Toes to Bar","Dragon Flag"],
+  Calves:    ["Standing Calf Raise","Seated Calf Raise","Leg Press Calf Raise","Donkey Calf Raise","Single-Leg Calf Raise","Jump Rope"],
 };
+
+// Strength standards (lbs) — Beginner / Intermediate / Advanced / Elite
 const STRENGTH_STDS = {
-  "Bench Press": [95,155,215,275],
-  "Barbell Row": [85,145,200,255],
-  "Squat":       [115,185,255,330],
-  "OHP":         [55,95,135,175],
-  "RDL":         [95,165,235,305],
-  "Pull-up":     [1,8,15,20],
+  "Bench Press":   [95,155,215,275],
+  "Incline Bench Press":[75,125,175,225],
+  "OHP":           [55,95,135,175],
+  "Push Press":    [75,120,165,210],
+  "Dip":           [0,15,30,55],
+  "Barbell Row":   [85,145,200,255],
+  "Pendlay Row":   [95,155,210,265],
+  "Pull-up":       [1,8,15,22],
+  "Deadlift":      [135,225,315,405],
+  "Squat":         [115,185,255,330],
+  "Front Squat":   [85,145,205,265],
+  "Leg Press":     [180,315,450,585],
+  "RDL":           [95,165,235,305],
+  "Hip Thrust":    [135,225,315,405],
+  "Barbell Curl":  [45,75,105,135],
+  "Skull Crusher": [45,75,105,135],
+  "Lateral Raise": [10,20,30,45],
+  "Standing Calf Raise":[95,155,225,295],
+};
+
+// Which muscle group each tracked lift trains (for tier→map integration)
+const LIFT_MUSCLE = {
+  "Bench Press":"Chest","Incline Bench Press":"Chest","Dip":"Chest",
+  "OHP":"Shoulders","Push Press":"Shoulders","Lateral Raise":"Shoulders",
+  "Barbell Row":"Back","Pendlay Row":"Back","Pull-up":"Back","Deadlift":"Back",
+  "Squat":"Legs","Front Squat":"Legs","Leg Press":"Legs","RDL":"Legs",
+  "Hip Thrust":"Glutes",
+  "Barbell Curl":"Biceps",
+  "Skull Crusher":"Triceps",
+  "Standing Calf Raise":"Calves",
 };
 const SLEEP_Q = ["Terrible","Poor","OK","Good","Perfect"];
 
@@ -182,10 +211,21 @@ const quotePool = () => QUOTES;
 
 const calcTier = (lift,val) => {
   const s=STRENGTH_STDS[lift]; if(!s) return null;
-  if(val>=s[3]) return {label:"ELITE",    color:C.orange};
-  if(val>=s[2]) return {label:"ADVANCED", color:C.white};
-  if(val>=s[1]) return {label:"INTER",    color:C.silver};
-  return              {label:"BEGINNER",  color:C.ghost};
+  if(val>=s[3]) return {label:"ELITE",    color:YELLOW,    rank:4};
+  if(val>=s[2]) return {label:"ADVANCED", color:CYAN_HI,   rank:3};
+  if(val>=s[1]) return {label:"INTER",    color:CYAN,      rank:2};
+  return              {label:"BEGINNER",  color:YELLOW_LO, rank:1};
+};
+
+// Compute best tier per muscle from logged 1RMs
+const tiersByMuscle = (maxW={}) => {
+  const out={};
+  Object.entries(LIFT_MUSCLE).forEach(([lift,muscle])=>{
+    const v=parseFloat(maxW[lift]); if(!v) return;
+    const t=calcTier(lift,v); if(!t) return;
+    if(!out[muscle] || t.rank>out[muscle].rank) out[muscle]=t;
+  });
+  return out;
 };
 
 // ─── MUSCLE MAP GRADIENT ─────────────────────────────────────────────────────
@@ -201,8 +241,11 @@ const volColor = v => {
   return YELLOW;
 };
 
-const MuscleMap = ({vol}) => {
+const MuscleMap = ({vol, tiers = {}}) => {
   const g = m => volColor(vol[m]||0);
+  // Tier-colored stroke per muscle — integrates strength ranking into the map
+  const sk = m => tiers[m]?.color || "none";
+  const sw = m => tiers[m] ? 1.6 : 0;
 
   const stops = [
     ["ELITE", YELLOW],
@@ -213,141 +256,49 @@ const MuscleMap = ({vol}) => {
     ["NONE",  GRAPH],
   ];
 
-  // Heroic flying-pose silhouette: one fist raised, cape trailing.
-  // The silhouette outline reads as a generic muscular hero; muscle regions
-  // are painted with volume colors on top of the silhouette base.
   const SIL = C.charcoal;
+  const SILHOUETTE = "M60,8 C70,8 76,16 76,26 C76,34 72,40 68,42 L78,46 Q92,50 96,68 L108,80 Q112,84 108,92 L94,86 L88,80 L86,108 L82,148 Q86,170 84,196 L74,212 L66,212 L60,180 L54,212 L46,212 L36,196 Q34,170 38,148 L34,108 L32,80 L26,86 L12,92 Q8,84 12,80 L24,68 Q28,50 42,46 L52,42 C48,40 44,34 44,26 C44,16 50,8 60,8 Z";
 
   return (
     <div style={{display:"flex", gap:24, justifyContent:"center", alignItems:"flex-start", flexWrap:"wrap"}}>
 
-      {/* FRONT — heroic silhouette */}
+      {/* ANTERIOR */}
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Anterior</Lbl>
         <svg width="120" height="220" viewBox="0 0 120 220">
-          {/* (cape removed) */}
-
-          {/* Silhouette base — full body outline */}
-          <path d="
-            M60,8
-            C70,8 76,16 76,26
-            C76,34 72,40 68,42
-            L78,46
-            Q92,50 96,68
-            L108,80
-            Q112,84 108,92
-            L94,86
-            L88,80
-            L86,108
-            L82,148
-            Q86,170 84,196
-            L74,212
-            L66,212
-            L60,180
-            L54,212
-            L46,212
-            L36,196
-            Q34,170 38,148
-            L34,108
-            L32,80
-            L26,86
-            L12,92
-            Q8,84 12,80
-            L24,68
-            Q28,50 42,46
-            L52,42
-            C48,40 44,34 44,26
-            C44,16 50,8 60,8 Z
-          " fill={SIL}/>
-
-          {/* SHOULDERS / Delts */}
-          <ellipse cx="32" cy="58" rx="9" ry="11" fill={g("Shoulders")} opacity="0.92"/>
-          <ellipse cx="88" cy="58" rx="9" ry="11" fill={g("Shoulders")} opacity="0.92"/>
-
-          {/* CHEST — two pecs */}
-          <path d="M44,52 Q52,48 59,52 L59,74 Q52,78 44,74 Z" fill={g("Chest")} opacity="0.95"/>
-          <path d="M76,52 Q68,48 61,52 L61,74 Q68,78 76,74 Z" fill={g("Chest")} opacity="0.95"/>
-
-          {/* BICEPS */}
-          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Biceps")} opacity="0.92"/>
-          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Biceps")} opacity="0.92"/>
-
-          {/* CORE — abs panel */}
-          <rect x="46" y="76" width="28" height="42" rx="3" fill={g("Core")} opacity="0.92"/>
-          <line x1="60" y1="76" x2="60" y2="118" stroke={C.void} strokeWidth="0.7" opacity="0.55"/>
-          <line x1="46" y1="88" x2="74" y2="88" stroke={C.void} strokeWidth="0.5" opacity="0.45"/>
-          <line x1="46" y1="100" x2="74" y2="100" stroke={C.void} strokeWidth="0.5" opacity="0.45"/>
-
-          {/* QUADS */}
-          <path d="M44,124 Q40,128 40,168 L52,168 Q54,140 54,124 Z" fill={g("Legs")} opacity="0.92"/>
-          <path d="M76,124 Q80,128 80,168 L68,168 Q66,140 66,124 Z" fill={g("Legs")} opacity="0.92"/>
-
-          {/* CALVES — front view subtle */}
-          <ellipse cx="46" cy="186" rx="6" ry="10" fill={g("Calves")} opacity="0.85"/>
-          <ellipse cx="74" cy="186" rx="6" ry="10" fill={g("Calves")} opacity="0.85"/>
+          <path d={SILHOUETTE} fill={SIL}/>
+          <ellipse cx="32" cy="58" rx="9" ry="11" fill={g("Shoulders")} stroke={sk("Shoulders")} strokeWidth={sw("Shoulders")} opacity="0.95"/>
+          <ellipse cx="88" cy="58" rx="9" ry="11" fill={g("Shoulders")} stroke={sk("Shoulders")} strokeWidth={sw("Shoulders")} opacity="0.95"/>
+          <path d="M44,52 Q52,48 59,52 L59,74 Q52,78 44,74 Z" fill={g("Chest")} stroke={sk("Chest")} strokeWidth={sw("Chest")} opacity="0.95"/>
+          <path d="M76,52 Q68,48 61,52 L61,74 Q68,78 76,74 Z" fill={g("Chest")} stroke={sk("Chest")} strokeWidth={sw("Chest")} opacity="0.95"/>
+          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Biceps")} stroke={sk("Biceps")} strokeWidth={sw("Biceps")} opacity="0.95"/>
+          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Biceps")} stroke={sk("Biceps")} strokeWidth={sw("Biceps")} opacity="0.95"/>
+          <rect x="46" y="76" width="28" height="42" rx="3" fill={g("Core")} stroke={sk("Core")} strokeWidth={sw("Core")} opacity="0.95"/>
+          <line x1="60" y1="76" x2="60" y2="118" stroke={C.void} strokeWidth="0.7" opacity="0.5"/>
+          <line x1="46" y1="88" x2="74" y2="88" stroke={C.void} strokeWidth="0.5" opacity="0.4"/>
+          <line x1="46" y1="100" x2="74" y2="100" stroke={C.void} strokeWidth="0.5" opacity="0.4"/>
+          <path d="M44,124 Q40,128 40,168 L52,168 Q54,140 54,124 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <path d="M76,124 Q80,128 80,168 L68,168 Q66,140 66,124 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <ellipse cx="46" cy="186" rx="6" ry="10" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.9"/>
+          <ellipse cx="74" cy="186" rx="6" ry="10" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.9"/>
         </svg>
       </div>
 
-      {/* BACK — heroic silhouette */}
+      {/* POSTERIOR */}
       <div>
         <Lbl style={{textAlign:"center",marginBottom:10,color:C.ghost}}>Posterior</Lbl>
         <svg width="120" height="220" viewBox="0 0 120 220">
-          {/* (cape removed) */}
-
-          {/* Silhouette base */}
-          <path d="
-            M60,8
-            C70,8 76,16 76,26
-            C76,34 72,40 68,42
-            L78,46
-            Q92,50 96,68
-            L108,80
-            Q112,84 108,92
-            L94,86
-            L88,80
-            L86,108
-            L82,148
-            Q86,170 84,196
-            L74,212
-            L66,212
-            L60,180
-            L54,212
-            L46,212
-            L36,196
-            Q34,170 38,148
-            L34,108
-            L32,80
-            L26,86
-            L12,92
-            Q8,84 12,80
-            L24,68
-            Q28,50 42,46
-            L52,42
-            C48,40 44,34 44,26
-            C44,16 50,8 60,8 Z
-          " fill={SIL}/>
-
-          {/* TRAPS */}
-          <path d="M48,46 Q60,42 72,46 Q66,54 60,54 Q54,54 48,46 Z" fill={g("Shoulders")} opacity="0.95"/>
-
-          {/* LATS — flared V */}
-          <path d="M40,52 Q26,72 32,108 L60,104 L88,108 Q94,72 80,52 Q70,56 60,56 Q50,56 40,52 Z" fill={g("Back")} opacity="0.92"/>
-
-          {/* TRICEPS */}
-          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Triceps")} opacity="0.92"/>
-          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Triceps")} opacity="0.92"/>
-
-          {/* GLUTES */}
-          <ellipse cx="50" cy="124" rx="11" ry="10" fill={g("Glutes")} opacity="0.95"/>
-          <ellipse cx="70" cy="124" rx="11" ry="10" fill={g("Glutes")} opacity="0.95"/>
-
-          {/* HAMSTRINGS */}
-          <path d="M44,136 Q40,140 40,170 L52,170 Q54,150 54,136 Z" fill={g("Legs")} opacity="0.92"/>
-          <path d="M76,136 Q80,140 80,170 L68,170 Q66,150 66,136 Z" fill={g("Legs")} opacity="0.92"/>
-
-          {/* CALVES */}
-          <ellipse cx="46" cy="188" rx="6" ry="12" fill={g("Calves")} opacity="0.95"/>
-          <ellipse cx="74" cy="188" rx="6" ry="12" fill={g("Calves")} opacity="0.95"/>
+          <path d={SILHOUETTE} fill={SIL}/>
+          <path d="M48,46 Q60,42 72,46 Q66,54 60,54 Q54,54 48,46 Z" fill={g("Shoulders")} stroke={sk("Shoulders")} strokeWidth={sw("Shoulders")} opacity="0.95"/>
+          <path d="M40,52 Q26,72 32,108 L60,104 L88,108 Q94,72 80,52 Q70,56 60,56 Q50,56 40,52 Z" fill={g("Back")} stroke={sk("Back")} strokeWidth={sw("Back")} opacity="0.95"/>
+          <ellipse cx="26" cy="78" rx="7" ry="13" fill={g("Triceps")} stroke={sk("Triceps")} strokeWidth={sw("Triceps")} opacity="0.95"/>
+          <ellipse cx="94" cy="78" rx="7" ry="13" fill={g("Triceps")} stroke={sk("Triceps")} strokeWidth={sw("Triceps")} opacity="0.95"/>
+          <ellipse cx="50" cy="124" rx="11" ry="10" fill={g("Glutes")} stroke={sk("Glutes")} strokeWidth={sw("Glutes")} opacity="0.95"/>
+          <ellipse cx="70" cy="124" rx="11" ry="10" fill={g("Glutes")} stroke={sk("Glutes")} strokeWidth={sw("Glutes")} opacity="0.95"/>
+          <path d="M44,136 Q40,140 40,170 L52,170 Q54,150 54,136 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <path d="M76,136 Q80,140 80,170 L68,170 Q66,150 66,136 Z" fill={g("Legs")} stroke={sk("Legs")} strokeWidth={sw("Legs")} opacity="0.95"/>
+          <ellipse cx="46" cy="188" rx="6" ry="12" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.95"/>
+          <ellipse cx="74" cy="188" rx="6" ry="12" fill={g("Calves")} stroke={sk("Calves")} strokeWidth={sw("Calves")} opacity="0.95"/>
         </svg>
       </div>
 
@@ -357,7 +308,7 @@ const MuscleMap = ({vol}) => {
         <div style={{
           width:12,height:96,flexShrink:0,
           background:`linear-gradient(to top, ${GRAPH}, ${CYAN}55 20%, ${CYAN} 50%, ${YELLOW}cc 75%, ${YELLOW})`,
-          border:`1px solid ${CYAN}55`,marginBottom:8,
+          border:`1px solid ${CYAN}66`,marginBottom:10,
         }}/>
         {stops.map(([l,c],i)=>(
           <div key={l} style={{display:"flex",alignItems:"center",gap:7,marginBottom:i<stops.length-1?5:0}}>
@@ -365,6 +316,20 @@ const MuscleMap = ({vol}) => {
             <span style={{fontSize:8,letterSpacing:"0.18em",color:C.ghost,lineHeight:1}}>{l}</span>
           </div>
         ))}
+        {Object.keys(tiers).length>0 && (
+          <>
+            <Lbl style={{color:C.ghost,marginTop:14,marginBottom:8}}>Tier ring</Lbl>
+            {["BEGINNER","INTER","ADVANCED","ELITE"].map(t=>{
+              const c={BEGINNER:YELLOW_LO,INTER:CYAN,ADVANCED:CYAN_HI,ELITE:YELLOW}[t];
+              return (
+                <div key={t} style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
+                  <div style={{width:8,height:8,borderRadius:999,border:`1.5px solid ${c}`,background:"transparent"}}/>
+                  <span style={{fontSize:8,letterSpacing:"0.18em",color:C.ghost,lineHeight:1}}>{t}</span>
+                </div>
+              );
+            })}
+          </>
+        )}
       </div>
 
     </div>
@@ -621,13 +586,28 @@ const Workout = ({data,setData,date,setDate}) => {
   const [notes,setNotes]=useState("");
   const maxW = data.maxw || {};
   const setMaxW = (v) => setData({...data, maxw: v});
+  const [mapWindow,setMapWindow]=useState(7); // 1 = today, 7 or 30 = trailing N days
 
   const day=data.workouts[date]||{exercises:[]};
-  const vol={};
-  MUSCLE_GROUPS.forEach(mg=>{
-    const exs=(day.exercises||[]).filter(e=>e.muscle===mg);
-    vol[mg]=Math.min(100,exs.reduce((a,e)=>a+e.sets*e.reps,0));
-  });
+
+  // Volume over a trailing window ending on the selected date.
+  // mapWindow=1 means just the selected date.
+  const vol=(()=>{
+    const out={}; MUSCLE_GROUPS.forEach(m=>out[m]=0);
+    const end=new Date(date+"T12:00:00");
+    for(let i=0;i<mapWindow;i++){
+      const d=new Date(end); d.setDate(end.getDate()-i);
+      const k=d.toISOString().split("T")[0];
+      const exs=data.workouts[k]?.exercises||[];
+      exs.forEach(e=>{ if(out[e.muscle]!=null) out[e.muscle]+=e.sets*e.reps; });
+    }
+    // Normalize: scale so a strong week reads near 100. Per-day cap 100; windowed cap roughly N*30.
+    const cap=Math.max(60, mapWindow*30);
+    MUSCLE_GROUPS.forEach(m=>{ out[m]=Math.min(100, Math.round((out[m]/cap)*100)); });
+    return out;
+  })();
+
+  const tiers = tiersByMuscle(maxW);
 
   const add=()=>{
     const name=useCustom?custom:exName;if(!name.trim())return;
@@ -657,17 +637,32 @@ const Workout = ({data,setData,date,setDate}) => {
 
   return (
     <div>
-      <DatePicker date={date} setDate={setDate} accent={C.orange}/>
+      <DatePicker date={date} setDate={setDate} accent={CYAN}/>
 
-      {/* Map — Thragg orange as the heat color */}
-      <div style={{background:C.surface,padding:"22px 18px",marginBottom:32,borderTop:`1px solid ${C.orange}22`}}>
-        <Lbl color={C.orange} style={{marginBottom:18}}>Activation Map</Lbl>
-        <MuscleMap vol={vol}/>
-        {/* subtle: "Know thy enemy" — Thragg, referring to one's own body */}
-        {totalReps>0&&<div style={{marginTop:14,textAlign:"center",fontSize:8,color:C.ghost,letterSpacing:"0.2em"}}>
-          {totalSets} sets · {totalReps} reps logged
-        </div>}
+      {/* Map — windowed volume + strength tier rings */}
+      <div style={{background:C.surface,padding:"22px 18px",marginBottom:32,borderRadius:12,borderTop:`2px solid ${CYAN}55`,boxShadow:`0 4px 14px ${SHADOW}`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,flexWrap:"wrap",gap:10}}>
+          <Lbl color={CYAN}>Activation Map</Lbl>
+          <div style={{display:"flex",gap:4}}>
+            {[["TODAY",1],["7 DAYS",7],["30 DAYS",30]].map(([lbl,n])=>(
+              <button key={n} onClick={()=>setMapWindow(n)} style={{
+                padding:"5px 10px",fontSize:9,fontWeight:700,letterSpacing:"0.16em",
+                fontFamily:"inherit",cursor:"pointer",borderRadius:999,
+                border:`1px solid ${mapWindow===n?CYAN:C.rule}`,
+                background:mapWindow===n?`${CYAN}22`:"transparent",
+                color:mapWindow===n?CYAN:C.ghost,transition:"all 0.15s",
+              }}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+        <MuscleMap vol={vol} tiers={tiers}/>
+        <div style={{marginTop:14,textAlign:"center",fontSize:8,color:C.ghost,letterSpacing:"0.2em"}}>
+          {mapWindow===1
+            ? (totalReps>0?`${totalSets} sets · ${totalReps} reps today`:"No volume today")
+            : `Trailing ${mapWindow} days · rings = strength tier`}
+        </div>
       </div>
+
 
       {/* Log — orange dominant */}
       <div style={{background:C.surface,padding:"22px 20px",marginBottom:32}}>
