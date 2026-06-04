@@ -586,13 +586,28 @@ const Workout = ({data,setData,date,setDate}) => {
   const [notes,setNotes]=useState("");
   const maxW = data.maxw || {};
   const setMaxW = (v) => setData({...data, maxw: v});
+  const [mapWindow,setMapWindow]=useState(7); // 1 = today, 7 or 30 = trailing N days
 
   const day=data.workouts[date]||{exercises:[]};
-  const vol={};
-  MUSCLE_GROUPS.forEach(mg=>{
-    const exs=(day.exercises||[]).filter(e=>e.muscle===mg);
-    vol[mg]=Math.min(100,exs.reduce((a,e)=>a+e.sets*e.reps,0));
-  });
+
+  // Volume over a trailing window ending on the selected date.
+  // mapWindow=1 means just the selected date.
+  const vol=(()=>{
+    const out={}; MUSCLE_GROUPS.forEach(m=>out[m]=0);
+    const end=new Date(date+"T12:00:00");
+    for(let i=0;i<mapWindow;i++){
+      const d=new Date(end); d.setDate(end.getDate()-i);
+      const k=d.toISOString().split("T")[0];
+      const exs=data.workouts[k]?.exercises||[];
+      exs.forEach(e=>{ if(out[e.muscle]!=null) out[e.muscle]+=e.sets*e.reps; });
+    }
+    // Normalize: scale so a strong week reads near 100. Per-day cap 100; windowed cap roughly N*30.
+    const cap=Math.max(60, mapWindow*30);
+    MUSCLE_GROUPS.forEach(m=>{ out[m]=Math.min(100, Math.round((out[m]/cap)*100)); });
+    return out;
+  })();
+
+  const tiers = tiersByMuscle(maxW);
 
   const add=()=>{
     const name=useCustom?custom:exName;if(!name.trim())return;
@@ -622,17 +637,32 @@ const Workout = ({data,setData,date,setDate}) => {
 
   return (
     <div>
-      <DatePicker date={date} setDate={setDate} accent={C.orange}/>
+      <DatePicker date={date} setDate={setDate} accent={CYAN}/>
 
-      {/* Map — Thragg orange as the heat color */}
-      <div style={{background:C.surface,padding:"22px 18px",marginBottom:32,borderTop:`1px solid ${C.orange}22`}}>
-        <Lbl color={C.orange} style={{marginBottom:18}}>Activation Map</Lbl>
-        <MuscleMap vol={vol}/>
-        {/* subtle: "Know thy enemy" — Thragg, referring to one's own body */}
-        {totalReps>0&&<div style={{marginTop:14,textAlign:"center",fontSize:8,color:C.ghost,letterSpacing:"0.2em"}}>
-          {totalSets} sets · {totalReps} reps logged
-        </div>}
+      {/* Map — windowed volume + strength tier rings */}
+      <div style={{background:C.surface,padding:"22px 18px",marginBottom:32,borderRadius:12,borderTop:`2px solid ${CYAN}55`,boxShadow:`0 4px 14px ${SHADOW}`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,flexWrap:"wrap",gap:10}}>
+          <Lbl color={CYAN}>Activation Map</Lbl>
+          <div style={{display:"flex",gap:4}}>
+            {[["TODAY",1],["7 DAYS",7],["30 DAYS",30]].map(([lbl,n])=>(
+              <button key={n} onClick={()=>setMapWindow(n)} style={{
+                padding:"5px 10px",fontSize:9,fontWeight:700,letterSpacing:"0.16em",
+                fontFamily:"inherit",cursor:"pointer",borderRadius:999,
+                border:`1px solid ${mapWindow===n?CYAN:C.rule}`,
+                background:mapWindow===n?`${CYAN}22`:"transparent",
+                color:mapWindow===n?CYAN:C.ghost,transition:"all 0.15s",
+              }}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+        <MuscleMap vol={vol} tiers={tiers}/>
+        <div style={{marginTop:14,textAlign:"center",fontSize:8,color:C.ghost,letterSpacing:"0.2em"}}>
+          {mapWindow===1
+            ? (totalReps>0?`${totalSets} sets · ${totalReps} reps today`:"No volume today")
+            : `Trailing ${mapWindow} days · rings = strength tier`}
+        </div>
       </div>
+
 
       {/* Log — orange dominant */}
       <div style={{background:C.surface,padding:"22px 20px",marginBottom:32}}>
