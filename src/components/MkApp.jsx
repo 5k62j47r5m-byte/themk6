@@ -1190,7 +1190,7 @@ export default function Mk1() {
             padding:"22px 36px 18px",borderBottom:`1px solid ${C.rule}`,
             background:`linear-gradient(180deg, ${C.base}, ${C.void})`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div style={{fontSize:28,fontWeight:800,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
+            <div style={{fontFamily:HEADER_FONT,fontSize:32,fontWeight:400,letterSpacing:"0.06em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
               {VERSION}
             </div>
           </div>
