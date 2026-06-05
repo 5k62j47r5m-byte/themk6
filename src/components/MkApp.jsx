@@ -17,20 +17,21 @@ import { supabase } from "@/integrations/supabase/client";
 // Vibrant 3-hue system + tonal variants. Lighter graphite for less darkness,
 // balanced cyan/yellow distribution.
 const YELLOW    = "#ffe556";
-const YELLOW_HI = "#fff7b0";
-const YELLOW_LO = "#d4b32a";
-const YELLOW_DK = "#8a6f15";
-const CYAN      = "#22d4ff";  // brighter cyan for balance against yellow
-const CYAN_HI   = "#7ce8ff";
-const CYAN_LO   = "#1190b8";
-const CYAN_DK   = "#0a5470";
-const GRAPH     = "#3a4248";  // lightened — less dark canvas
-const GRAPH_DK  = "#2a3035";  // recessed wells (also lighter)
-const GRAPH_HI  = "#4a535b";  // raised cards
-const GRAPH_HI2 = "#5a646e";  // hover
-const SHADOW    = "rgba(0,0,0,0.4)";
-const GLOW_Y    = "rgba(255,229,86,0.4)";
-const GLOW_C    = "rgba(34,212,255,0.45)";
+const YELLOW_HI = "#fff39d";
+const YELLOW_LO = "#d4b820";
+const YELLOW_DK = "#8a7610";
+const CYAN      = "#00bcf0";   // exact requested
+const CYAN_HI   = "#5fd6ff";
+const CYAN_LO   = "#0083a8";
+const CYAN_DK   = "#005670";
+// Lighter, cyan-tinted graphite — less dark, more colorful canvas
+const GRAPH     = "#3e525c";   // base panel (cooler, lighter)
+const GRAPH_DK  = "#2c3c45";   // recessed (still cool, not black)
+const GRAPH_HI  = "#536773";   // raised cards
+const GRAPH_HI2 = "#647884";   // hover
+const SHADOW    = "rgba(0,0,0,0.32)";
+const GLOW_Y    = "rgba(255,229,86,0.55)";
+const GLOW_C    = "rgba(0,188,240,0.55)";
 
 const C = {
   void:      GRAPH_DK,
@@ -48,10 +49,10 @@ const C = {
   white:     CYAN_HI,
   silver:    CYAN,
   pale:      YELLOW_HI,
-  ghost:     "#a6b0b8",   // brighter muted text on lighter canvas
+  ghost:     "#c2cdd4",   // brighter muted text on lighter, tinted canvas
   charcoal:  GRAPH_DK,
 
-  rule:      "#5a646e",
+  rule:      "#6a7d88",
   shadow:    SHADOW,
 };
 
@@ -337,10 +338,13 @@ const MuscleMap = ({vol, tiers = {}}) => {
 };
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
+// Headers = woodblock (Rye). Subtext / body = Lemon Milk.
+const FF_HEAD = "'Rye','IM Fell English SC',serif";
+const FF_BODY = "'LEMON MILK','LEMONMILK-Regular','DM Sans','Inter',sans-serif";
 const T = {
-  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase"},
-  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase"},
-  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500},
+  micro: {fontSize:10, letterSpacing:"0.22em", fontWeight:700, textTransform:"uppercase", fontFamily:FF_HEAD},
+  label: {fontSize:12, letterSpacing:"0.18em", fontWeight:700, textTransform:"uppercase", fontFamily:FF_HEAD},
+  body:  {fontSize:15, letterSpacing:"0.02em", fontWeight:500, fontFamily:FF_BODY},
 };
 
 const Lbl = ({children,color=C.ghost,style={}}) => (
@@ -757,30 +761,8 @@ const Workout = ({data,setData,date,setDate}) => {
       }
 
       <Rule accent={C.orange}/>
-
-
-      {/* Strength tiers — orange=elite, white=advanced, silver=inter */}
-      <Lbl color={C.orange} style={{marginBottom:18}}>Strength Tiers</Lbl>
-      {/* Subtle nod: "population percentiles" echoes Viltrumite strength ranking */}
-      <div style={{fontSize:9,color:C.ghost,letterSpacing:"0.14em",marginBottom:16}}>Population percentile benchmarks</div>
-      <div style={{background:C.surface,padding:"20px"}}>
-        {Object.keys(STRENGTH_STDS).map((lift,i,arr)=>{
-          const tier=maxW[lift]?calcTier(lift,maxW[lift]):null;
-          return (
-            <div key={lift} style={{
-              display:"flex",alignItems:"center",gap:12,
-              paddingBottom:i<arr.length-1?16:0,marginBottom:i<arr.length-1?16:0,
-              borderBottom:i<arr.length-1?`1px solid ${C.rule}`:"none",
-            }}>
-              <div style={{flex:1,fontSize:13,color:C.white}}>{lift}</div>
-              <Input type="number" value={maxW[lift]||""} placeholder="lbs"
-                onChange={e=>setMaxW({...maxW,[lift]:parseFloat(e.target.value)||""})}
-                style={{width:72,flexShrink:0}}/>
-              {tier&&<Chip label={tier.label} color={tier.color}/>}
-            </div>
-          );
-        })}
-      </div>
+ 
+ 
     </div>
   );
 };
@@ -1136,19 +1118,30 @@ export default function Mk1() {
   };
 
   return (
-    <div style={{fontFamily:"'DM Sans','Inter','Helvetica Neue',sans-serif",background:C.void,color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+    <div style={{
+      fontFamily:FF_BODY,
+      background:`
+        radial-gradient(ellipse at top left, ${CYAN}26, transparent 55%),
+        radial-gradient(ellipse at bottom right, ${YELLOW}22, transparent 55%),
+        linear-gradient(160deg, ${GRAPH} 0%, ${GRAPH_DK} 100%)
+      `,
+      color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column",
+    }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Rye&family=IM+Fell+English+SC&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.cdnfonts.com/css/lemon-milk-font-family');
         *{box-sizing:border-box;margin:0;padding:0;}
-        ::-webkit-scrollbar{width:2px;background:${C.void};}
-        ::-webkit-scrollbar-thumb{background:${C.rim};}
+        body{font-family:${FF_BODY};}
+        ::-webkit-scrollbar{width:3px;background:transparent;}
+        ::-webkit-scrollbar-thumb{background:${CYAN}88;border-radius:999px;}
         input[type=date]::-webkit-calendar-picker-indicator,
         input[type=time]::-webkit-calendar-picker-indicator,
-        input[type=datetime-local]::-webkit-calendar-picker-indicator{filter:invert(0.35);cursor:pointer;}
+        input[type=datetime-local]::-webkit-calendar-picker-indicator{filter:invert(0.5) sepia(1) hue-rotate(155deg) saturate(4);cursor:pointer;}
         option{background:${C.raised};}
         @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         .mod{animation:up 0.18s ease;}
       `}</style>
+
 
       <div style={{display:"flex",flex:1,minHeight:0}}>
 
