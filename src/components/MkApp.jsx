@@ -338,10 +338,13 @@ const MuscleMap = ({vol, tiers = {}}) => {
 };
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
+// Headers = woodblock (Rye). Subtext / body = Lemon Milk.
+const FF_HEAD = "'Rye','IM Fell English SC',serif";
+const FF_BODY = "'LEMON MILK','LEMONMILK-Regular','DM Sans','Inter',sans-serif";
 const T = {
-  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase"},
-  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase"},
-  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500},
+  micro: {fontSize:10, letterSpacing:"0.22em", fontWeight:700, textTransform:"uppercase", fontFamily:FF_HEAD},
+  label: {fontSize:12, letterSpacing:"0.18em", fontWeight:700, textTransform:"uppercase", fontFamily:FF_HEAD},
+  body:  {fontSize:15, letterSpacing:"0.02em", fontWeight:500, fontFamily:FF_BODY},
 };
 
 const Lbl = ({children,color=C.ghost,style={}}) => (
