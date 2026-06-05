@@ -49,10 +49,10 @@ const C = {
   white:     CYAN_HI,
   silver:    CYAN,
   pale:      YELLOW_HI,
-  ghost:     "#a6b0b8",   // brighter muted text on lighter canvas
+  ghost:     "#c2cdd4",   // brighter muted text on lighter, tinted canvas
   charcoal:  GRAPH_DK,
 
-  rule:      "#5a646e",
+  rule:      "#6a7d88",
   shadow:    SHADOW,
 };
 
