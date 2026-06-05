@@ -1114,12 +1114,20 @@ export default function Mk1() {
   };
 
   return (
-    <div style={{fontFamily:"'DM Sans','Inter','Helvetica Neue',sans-serif",background:C.void,color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+    <div style={{
+      fontFamily:BODY_FONT,
+      background:`radial-gradient(1200px 700px at 12% -10%, ${CYAN}1f, transparent 60%), radial-gradient(1000px 600px at 105% 110%, ${YELLOW}1c, transparent 55%), ${C.void}`,
+      color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column",
+    }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+        @import url('https://fonts.cdnfonts.com/css/woodblock');
+        @import url('https://fonts.cdnfonts.com/css/lemon-milk');
+        @import url('https://fonts.googleapis.com/css2?family=Rye&family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:${BODY_FONT};}
         ::-webkit-scrollbar{width:2px;background:${C.void};}
         ::-webkit-scrollbar-thumb{background:${C.rim};}
+        input,select,textarea,button{font-family:${BODY_FONT};}
         input[type=date]::-webkit-calendar-picker-indicator,
         input[type=time]::-webkit-calendar-picker-indicator,
         input[type=datetime-local]::-webkit-calendar-picker-indicator{filter:invert(0.35);cursor:pointer;}
@@ -1127,6 +1135,7 @@ export default function Mk1() {
         @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         .mod{animation:up 0.18s ease;}
       `}</style>
+
 
       <div style={{display:"flex",flex:1,minHeight:0}}>
 
