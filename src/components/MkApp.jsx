@@ -337,10 +337,13 @@ const MuscleMap = ({vol, tiers = {}}) => {
 };
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
+const HEADER_FONT = "'Woodblock','Rye','Bebas Neue',serif";
+const BODY_FONT   = "'Lemon Milk','LEMON MILK','Inter','Helvetica Neue',sans-serif";
+
 const T = {
-  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase"},
-  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase"},
-  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500},
+  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500, fontFamily:BODY_FONT},
 };
 
 const Lbl = ({children,color=C.ghost,style={}}) => (
