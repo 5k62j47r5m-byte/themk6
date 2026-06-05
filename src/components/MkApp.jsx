@@ -1148,7 +1148,7 @@ export default function Mk1() {
 
           {/* Wordmark */}
           <div style={{padding:"34px 24px 28px",borderBottom:`1px solid ${C.rule}`}}>
-            <div style={{fontSize:32,fontWeight:800,letterSpacing:"0.06em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
+            <div style={{fontFamily:HEADER_FONT,fontSize:34,fontWeight:400,letterSpacing:"0.04em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
               {VERSION}
             </div>
             <div style={{...T.micro,color:C.silver,marginTop:8}}>Performance</div>
