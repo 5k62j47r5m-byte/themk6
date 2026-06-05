@@ -14,23 +14,23 @@ import { supabase } from "@/integrations/supabase/client";
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
-// Vibrant 3-hue system + tonal variants. Lighter graphite for less darkness,
-// balanced cyan/yellow distribution.
+// Locked accents: exact yellow + cyan the user specified.
+// Canvas lightened further to let both colors carry visual weight.
 const YELLOW    = "#ffe556";
-const YELLOW_HI = "#fff7b0";
-const YELLOW_LO = "#d4b32a";
-const YELLOW_DK = "#8a6f15";
-const CYAN      = "#22d4ff";  // brighter cyan for balance against yellow
-const CYAN_HI   = "#7ce8ff";
-const CYAN_LO   = "#1190b8";
-const CYAN_DK   = "#0a5470";
-const GRAPH     = "#3a4248";  // lightened — less dark canvas
-const GRAPH_DK  = "#2a3035";  // recessed wells (also lighter)
-const GRAPH_HI  = "#4a535b";  // raised cards
-const GRAPH_HI2 = "#5a646e";  // hover
-const SHADOW    = "rgba(0,0,0,0.4)";
-const GLOW_Y    = "rgba(255,229,86,0.4)";
-const GLOW_C    = "rgba(34,212,255,0.45)";
+const YELLOW_HI = "#fff2a0";
+const YELLOW_LO = "#c9a830";
+const YELLOW_DK = "#7d6612";
+const CYAN      = "#00bcf0";
+const CYAN_HI   = "#5cd2f5";
+const CYAN_LO   = "#0086ad";
+const CYAN_DK   = "#055070";
+const GRAPH     = "#4d5862";  // lightened canvas — less darkness, more room for color
+const GRAPH_DK  = "#3a434c";  // wells / outer shell
+const GRAPH_HI  = "#5d6873";  // raised cards
+const GRAPH_HI2 = "#6d7884";  // hover
+const SHADOW    = "rgba(0,0,0,0.35)";
+const GLOW_Y    = "rgba(255,229,86,0.45)";
+const GLOW_C    = "rgba(0,188,240,0.5)";
 
 const C = {
   void:      GRAPH_DK,
