@@ -14,23 +14,23 @@ import { supabase } from "@/integrations/supabase/client";
 //   Metrics  → Split: weight→white, mood→orange, energy→silver
 //   Week     → Silver structure, orange for alerts
 
-// Vibrant 3-hue system + tonal variants. Lighter graphite for less darkness,
-// balanced cyan/yellow distribution.
+// Locked accents: exact yellow + cyan the user specified.
+// Canvas lightened further to let both colors carry visual weight.
 const YELLOW    = "#ffe556";
-const YELLOW_HI = "#fff7b0";
-const YELLOW_LO = "#d4b32a";
-const YELLOW_DK = "#8a6f15";
-const CYAN      = "#22d4ff";  // brighter cyan for balance against yellow
-const CYAN_HI   = "#7ce8ff";
-const CYAN_LO   = "#1190b8";
-const CYAN_DK   = "#0a5470";
-const GRAPH     = "#3a4248";  // lightened — less dark canvas
-const GRAPH_DK  = "#2a3035";  // recessed wells (also lighter)
-const GRAPH_HI  = "#4a535b";  // raised cards
-const GRAPH_HI2 = "#5a646e";  // hover
-const SHADOW    = "rgba(0,0,0,0.4)";
-const GLOW_Y    = "rgba(255,229,86,0.4)";
-const GLOW_C    = "rgba(34,212,255,0.45)";
+const YELLOW_HI = "#fff2a0";
+const YELLOW_LO = "#c9a830";
+const YELLOW_DK = "#7d6612";
+const CYAN      = "#00bcf0";
+const CYAN_HI   = "#5cd2f5";
+const CYAN_LO   = "#0086ad";
+const CYAN_DK   = "#055070";
+const GRAPH     = "#4d5862";  // lightened canvas — less darkness, more room for color
+const GRAPH_DK  = "#3a434c";  // wells / outer shell
+const GRAPH_HI  = "#5d6873";  // raised cards
+const GRAPH_HI2 = "#6d7884";  // hover
+const SHADOW    = "rgba(0,0,0,0.35)";
+const GLOW_Y    = "rgba(255,229,86,0.45)";
+const GLOW_C    = "rgba(0,188,240,0.5)";
 
 const C = {
   void:      GRAPH_DK,
@@ -337,10 +337,13 @@ const MuscleMap = ({vol, tiers = {}}) => {
 };
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
+const HEADER_FONT = "'Woodblock','Rye','Bebas Neue',serif";
+const BODY_FONT   = "'Lemon Milk','LEMON MILK','Inter','Helvetica Neue',sans-serif";
+
 const T = {
-  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase"},
-  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase"},
-  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500},
+  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500, fontFamily:BODY_FONT},
 };
 
 const Lbl = ({children,color=C.ghost,style={}}) => (
@@ -756,31 +759,6 @@ const Workout = ({data,setData,date,setDate}) => {
           </div>
       }
 
-      <Rule accent={C.orange}/>
-
-
-      {/* Strength tiers — orange=elite, white=advanced, silver=inter */}
-      <Lbl color={C.orange} style={{marginBottom:18}}>Strength Tiers</Lbl>
-      {/* Subtle nod: "population percentiles" echoes Viltrumite strength ranking */}
-      <div style={{fontSize:9,color:C.ghost,letterSpacing:"0.14em",marginBottom:16}}>Population percentile benchmarks</div>
-      <div style={{background:C.surface,padding:"20px"}}>
-        {Object.keys(STRENGTH_STDS).map((lift,i,arr)=>{
-          const tier=maxW[lift]?calcTier(lift,maxW[lift]):null;
-          return (
-            <div key={lift} style={{
-              display:"flex",alignItems:"center",gap:12,
-              paddingBottom:i<arr.length-1?16:0,marginBottom:i<arr.length-1?16:0,
-              borderBottom:i<arr.length-1?`1px solid ${C.rule}`:"none",
-            }}>
-              <div style={{flex:1,fontSize:13,color:C.white}}>{lift}</div>
-              <Input type="number" value={maxW[lift]||""} placeholder="lbs"
-                onChange={e=>setMaxW({...maxW,[lift]:parseFloat(e.target.value)||""})}
-                style={{width:72,flexShrink:0}}/>
-              {tier&&<Chip label={tier.label} color={tier.color}/>}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 };
@@ -1136,12 +1114,20 @@ export default function Mk1() {
   };
 
   return (
-    <div style={{fontFamily:"'DM Sans','Inter','Helvetica Neue',sans-serif",background:C.void,color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+    <div style={{
+      fontFamily:BODY_FONT,
+      background:`radial-gradient(1200px 700px at 12% -10%, ${CYAN}1f, transparent 60%), radial-gradient(1000px 600px at 105% 110%, ${YELLOW}1c, transparent 55%), ${C.void}`,
+      color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column",
+    }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+        @import url('https://fonts.cdnfonts.com/css/woodblock');
+        @import url('https://fonts.cdnfonts.com/css/lemon-milk');
+        @import url('https://fonts.googleapis.com/css2?family=Rye&family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:${BODY_FONT};}
         ::-webkit-scrollbar{width:2px;background:${C.void};}
         ::-webkit-scrollbar-thumb{background:${C.rim};}
+        input,select,textarea,button{font-family:${BODY_FONT};}
         input[type=date]::-webkit-calendar-picker-indicator,
         input[type=time]::-webkit-calendar-picker-indicator,
         input[type=datetime-local]::-webkit-calendar-picker-indicator{filter:invert(0.35);cursor:pointer;}
@@ -1149,6 +1135,7 @@ export default function Mk1() {
         @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
         .mod{animation:up 0.18s ease;}
       `}</style>
+
 
       <div style={{display:"flex",flex:1,minHeight:0}}>
 
@@ -1161,7 +1148,7 @@ export default function Mk1() {
 
           {/* Wordmark */}
           <div style={{padding:"34px 24px 28px",borderBottom:`1px solid ${C.rule}`}}>
-            <div style={{fontSize:32,fontWeight:800,letterSpacing:"0.06em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
+            <div style={{fontFamily:HEADER_FONT,fontSize:34,fontWeight:400,letterSpacing:"0.04em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
               {VERSION}
             </div>
             <div style={{...T.micro,color:C.silver,marginTop:8}}>Performance</div>
@@ -1203,7 +1190,7 @@ export default function Mk1() {
             padding:"22px 36px 18px",borderBottom:`1px solid ${C.rule}`,
             background:`linear-gradient(180deg, ${C.base}, ${C.void})`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div style={{fontSize:28,fontWeight:800,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
+            <div style={{fontFamily:HEADER_FONT,fontSize:32,fontWeight:400,letterSpacing:"0.06em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
               {VERSION}
             </div>
           </div>
