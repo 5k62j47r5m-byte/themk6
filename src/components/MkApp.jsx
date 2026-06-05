@@ -761,30 +761,8 @@ const Workout = ({data,setData,date,setDate}) => {
       }
 
       <Rule accent={C.orange}/>
-
-
-      {/* Strength tiers — orange=elite, white=advanced, silver=inter */}
-      <Lbl color={C.orange} style={{marginBottom:18}}>Strength Tiers</Lbl>
-      {/* Subtle nod: "population percentiles" echoes Viltrumite strength ranking */}
-      <div style={{fontSize:9,color:C.ghost,letterSpacing:"0.14em",marginBottom:16}}>Population percentile benchmarks</div>
-      <div style={{background:C.surface,padding:"20px"}}>
-        {Object.keys(STRENGTH_STDS).map((lift,i,arr)=>{
-          const tier=maxW[lift]?calcTier(lift,maxW[lift]):null;
-          return (
-            <div key={lift} style={{
-              display:"flex",alignItems:"center",gap:12,
-              paddingBottom:i<arr.length-1?16:0,marginBottom:i<arr.length-1?16:0,
-              borderBottom:i<arr.length-1?`1px solid ${C.rule}`:"none",
-            }}>
-              <div style={{flex:1,fontSize:13,color:C.white}}>{lift}</div>
-              <Input type="number" value={maxW[lift]||""} placeholder="lbs"
-                onChange={e=>setMaxW({...maxW,[lift]:parseFloat(e.target.value)||""})}
-                style={{width:72,flexShrink:0}}/>
-              {tier&&<Chip label={tier.label} color={tier.color}/>}
-            </div>
-          );
-        })}
-      </div>
+ 
+ 
     </div>
   );
 };
