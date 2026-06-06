@@ -20,17 +20,23 @@ const YELLOW    = "#ffe556";
 const YELLOW_HI = "#fff7b0";
 const YELLOW_LO = "#d4b32a";
 const YELLOW_DK = "#8a6f15";
-const CYAN      = "#22d4ff";  // brighter cyan for balance against yellow
-const CYAN_HI   = "#7ce8ff";
-const CYAN_LO   = "#1190b8";
-const CYAN_DK   = "#0a5470";
+const CYAN      = "#00bcf0";  // exact spec cyan, balanced with yellow
+const CYAN_HI   = "#5cd6f7";
+const CYAN_LO   = "#0a7a9c";
+const CYAN_DK   = "#063e52";
 const GRAPH     = "#3a4248";  // lightened — less dark canvas
 const GRAPH_DK  = "#2a3035";  // recessed wells (also lighter)
 const GRAPH_HI  = "#4a535b";  // raised cards
 const GRAPH_HI2 = "#5a646e";  // hover
 const SHADOW    = "rgba(0,0,0,0.4)";
 const GLOW_Y    = "rgba(255,229,86,0.4)";
-const GLOW_C    = "rgba(34,212,255,0.45)";
+const GLOW_C    = "rgba(0,188,240,0.45)";
+
+// Typography — headers use a tall condensed display serif (Cinzel as Google-served
+// stand-in for the uploaded gothic caps reference), body uses geometric sans
+// (Jost as stand-in for Lemon Milk).
+const HEADER_FONT = "'Cinzel','Trajan Pro','Times New Roman',serif";
+const BODY_FONT   = "'Jost','Montserrat','Helvetica Neue',sans-serif";
 
 const C = {
   void:      GRAPH_DK,
