@@ -344,9 +344,10 @@ const MuscleMap = ({vol, tiers = {}}) => {
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
 const T = {
-  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase"},
-  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase"},
-  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500},
+  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500, fontFamily:BODY_FONT},
+  head:  {fontFamily:HEADER_FONT, letterSpacing:"0.08em", fontWeight:700},
 };
 
 const Lbl = ({children,color=C.ghost,style={}}) => (
