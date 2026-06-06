@@ -20,17 +20,23 @@ const YELLOW    = "#ffe556";
 const YELLOW_HI = "#fff7b0";
 const YELLOW_LO = "#d4b32a";
 const YELLOW_DK = "#8a6f15";
-const CYAN      = "#22d4ff";  // brighter cyan for balance against yellow
-const CYAN_HI   = "#7ce8ff";
-const CYAN_LO   = "#1190b8";
-const CYAN_DK   = "#0a5470";
+const CYAN      = "#00bcf0";  // exact spec cyan, balanced with yellow
+const CYAN_HI   = "#5cd6f7";
+const CYAN_LO   = "#0a7a9c";
+const CYAN_DK   = "#063e52";
 const GRAPH     = "#3a4248";  // lightened — less dark canvas
 const GRAPH_DK  = "#2a3035";  // recessed wells (also lighter)
 const GRAPH_HI  = "#4a535b";  // raised cards
 const GRAPH_HI2 = "#5a646e";  // hover
 const SHADOW    = "rgba(0,0,0,0.4)";
 const GLOW_Y    = "rgba(255,229,86,0.4)";
-const GLOW_C    = "rgba(34,212,255,0.45)";
+const GLOW_C    = "rgba(0,188,240,0.45)";
+
+// Typography — headers use a tall condensed display serif (Cinzel as Google-served
+// stand-in for the uploaded gothic caps reference), body uses geometric sans
+// (Jost as stand-in for Lemon Milk).
+const HEADER_FONT = "'Cinzel','Trajan Pro','Times New Roman',serif";
+const BODY_FONT   = "'Jost','Montserrat','Helvetica Neue',sans-serif";
 
 const C = {
   void:      GRAPH_DK,
@@ -338,9 +344,10 @@ const MuscleMap = ({vol, tiers = {}}) => {
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
 const T = {
-  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase"},
-  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase"},
-  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500},
+  micro: {fontSize:10, letterSpacing:"0.2em",  fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  label: {fontSize:12, letterSpacing:"0.16em", fontWeight:700, textTransform:"uppercase", fontFamily:HEADER_FONT},
+  body:  {fontSize:15, letterSpacing:"0.01em", fontWeight:500, fontFamily:BODY_FONT},
+  head:  {fontFamily:HEADER_FONT, letterSpacing:"0.08em", fontWeight:700},
 };
 
 const Lbl = ({children,color=C.ghost,style={}}) => (
@@ -759,28 +766,6 @@ const Workout = ({data,setData,date,setDate}) => {
       <Rule accent={C.orange}/>
 
 
-      {/* Strength tiers — orange=elite, white=advanced, silver=inter */}
-      <Lbl color={C.orange} style={{marginBottom:18}}>Strength Tiers</Lbl>
-      {/* Subtle nod: "population percentiles" echoes Viltrumite strength ranking */}
-      <div style={{fontSize:9,color:C.ghost,letterSpacing:"0.14em",marginBottom:16}}>Population percentile benchmarks</div>
-      <div style={{background:C.surface,padding:"20px"}}>
-        {Object.keys(STRENGTH_STDS).map((lift,i,arr)=>{
-          const tier=maxW[lift]?calcTier(lift,maxW[lift]):null;
-          return (
-            <div key={lift} style={{
-              display:"flex",alignItems:"center",gap:12,
-              paddingBottom:i<arr.length-1?16:0,marginBottom:i<arr.length-1?16:0,
-              borderBottom:i<arr.length-1?`1px solid ${C.rule}`:"none",
-            }}>
-              <div style={{flex:1,fontSize:13,color:C.white}}>{lift}</div>
-              <Input type="number" value={maxW[lift]||""} placeholder="lbs"
-                onChange={e=>setMaxW({...maxW,[lift]:parseFloat(e.target.value)||""})}
-                style={{width:72,flexShrink:0}}/>
-              {tier&&<Chip label={tier.label} color={tier.color}/>}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 };
@@ -1136,9 +1121,9 @@ export default function Mk1() {
   };
 
   return (
-    <div style={{fontFamily:"'DM Sans','Inter','Helvetica Neue',sans-serif",background:C.void,color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+    <div style={{fontFamily:BODY_FONT,background:C.void,color:C.white,minHeight:"100vh",display:"flex",flexDirection:"column"}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
         *{box-sizing:border-box;margin:0;padding:0;}
         ::-webkit-scrollbar{width:2px;background:${C.void};}
         ::-webkit-scrollbar-thumb{background:${C.rim};}
@@ -1161,7 +1146,7 @@ export default function Mk1() {
 
           {/* Wordmark */}
           <div style={{padding:"34px 24px 28px",borderBottom:`1px solid ${C.rule}`}}>
-            <div style={{fontSize:32,fontWeight:800,letterSpacing:"0.06em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
+            <div style={{fontFamily:HEADER_FONT,fontSize:34,fontWeight:800,letterSpacing:"0.08em",color:C.white,lineHeight:1,textShadow:`0 0 24px ${GLOW_Y}`}}>
               {VERSION}
             </div>
             <div style={{...T.micro,color:C.silver,marginTop:8}}>Performance</div>
@@ -1203,7 +1188,7 @@ export default function Mk1() {
             padding:"22px 36px 18px",borderBottom:`1px solid ${C.rule}`,
             background:`linear-gradient(180deg, ${C.base}, ${C.void})`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
           }}>
-            <div style={{fontSize:28,fontWeight:800,letterSpacing:"0.08em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
+            <div style={{fontFamily:HEADER_FONT,fontSize:30,fontWeight:800,letterSpacing:"0.1em",color:C.white,lineHeight:1,textAlign:"center",textShadow:`0 0 22px ${GLOW_Y}`}}>
               {VERSION}
             </div>
           </div>
