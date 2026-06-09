@@ -911,7 +911,17 @@ const Tasks = ({data,setData,date,setDate}) => {
     setTxt("");setDl("");
   };
   const toggle=id=>setData({...data,tasks:{...data.tasks,[date]:tasks.map(t=>t.id===id?{...t,done:!t.done}:t)}});
-  const remove=id=>setData({...data,tasks:{...data.tasks,[date]:tasks.filter(t=>t.id!==id)}});
+  const remove=id=>{
+    if(!confirm("Delete this task?")) return;
+    setData({...data,tasks:{...data.tasks,[date]:tasks.filter(t=>t.id!==id)}});
+  };
+  const editTask=id=>{
+    const t=tasks.find(x=>x.id===id); if(!t) return;
+    const text=prompt("Task",t.text); if(text===null||!text.trim()) return;
+    const deadline=prompt("Deadline (YYYY-MM-DDTHH:MM, blank for none)",t.deadline||"");
+    if(deadline===null) return;
+    setData({...data,tasks:{...data.tasks,[date]:tasks.map(x=>x.id===id?{...x,text,deadline}:x)}});
+  };
 
   const urgencyColor=dl=>{
     if(!dl) return C.rim;
