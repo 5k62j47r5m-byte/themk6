@@ -616,7 +616,22 @@ const Workout = ({data,setData,date,setDate}) => {
     setNotes("");setWt("");
   };
   const remove=i=>{
+    if(!confirm("Delete this exercise?")) return;
     setData({...data,workouts:{...data.workouts,[date]:{exercises:day.exercises.filter((_,idx)=>idx!==i)}}});
+  };
+  const edit=i=>{
+    const cur=day.exercises[i];
+    const sets=prompt("Sets",String(cur.sets)); if(sets===null) return;
+    const reps=prompt("Reps",String(cur.reps)); if(reps===null) return;
+    const wt=prompt("Weight (lbs, blank for none)",cur.weight!=null?String(cur.weight):""); if(wt===null) return;
+    const notes=prompt("Notes",cur.notes||""); if(notes===null) return;
+    const next={...cur,
+      sets:parseInt(sets)||cur.sets,
+      reps:parseInt(reps)||cur.reps,
+      weight:wt.trim()===""?null:parseFloat(wt),
+      notes,
+    };
+    setData({...data,workouts:{...data.workouts,[date]:{exercises:day.exercises.map((e,idx)=>idx===i?next:e)}}});
   };
 
   const totalSets=(day.exercises||[]).reduce((a,e)=>a+e.sets,0);
