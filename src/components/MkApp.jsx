@@ -818,6 +818,16 @@ const Sleep = ({data,setData,date,setDate}) => {
   };
 
   const log=()=>setData({...data,sleep:{...data.sleep,[date]:{bedtime:bed,wakeTime:wake,hours:hrs(bed,wake),quality:q}}});
+  const removeSleep=(d)=>{
+    if(!confirm("Delete this sleep entry?")) return;
+    const next={...data.sleep}; delete next[d];
+    setData({...data,sleep:next});
+  };
+  const loadSleep=(d)=>{
+    const s=data.sleep[d]; if(!s) return;
+    setBed(s.bedtime); setWake(s.wakeTime); setQ(s.quality);
+    setDate(d);
+  };
   const ex=data.sleep[date];
   const h=ex?parseFloat(ex.hours):0;
   const recent=last7().reverse();
