@@ -885,10 +885,12 @@ const Sleep = ({data,setData,date,setDate}) => {
         const h2=parseFloat(s.hours);
         const c=h2<6?C.orange:h2>=8?C.white:C.pale;
         return (
-          <div key={d} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${C.rule}`}}>
-            <span style={{fontSize:11,color:C.ghost,letterSpacing:"0.08em"}}>{d}</span>
+          <div key={d} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${C.rule}`,gap:10}}>
+            <span style={{fontSize:11,color:C.ghost,letterSpacing:"0.08em",flex:1}}>{d}</span>
             <span style={{fontSize:22,fontWeight:300,color:c,fontVariantNumeric:"tabular-nums"}}>{s.hours}h</span>
-            <Lbl style={{color:C.ghost}}>{s.quality}</Lbl>
+            <Lbl style={{color:C.ghost,flex:1,textAlign:"right"}}>{s.quality}</Lbl>
+            <button onClick={()=>loadSleep(d)} title="Edit" style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:9,letterSpacing:"0.15em",fontWeight:700,padding:"3px 7px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+            <button onClick={()=>removeSleep(d)} title="Delete" style={{background:"none",border:`1px solid ${C.rule}`,color:C.ghost,cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 7px",borderRadius:4}}>×</button>
           </div>
         );
       })}
