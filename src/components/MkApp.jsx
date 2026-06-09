@@ -1006,6 +1006,15 @@ const Metrics = ({data,setData,date,setDate}) => {
   const ex=data.metrics[date];
 
   const log=()=>setData({...data,metrics:{...data.metrics,[date]:{weight:wt?parseFloat(wt):null,mood:parseInt(mood),energy:parseInt(energy)}}});
+  const loadMetrics=()=>{
+    if(!ex) return;
+    setWt(ex.weight!=null?String(ex.weight):""); setMood(ex.mood||3); setEnergy(ex.energy||3);
+  };
+  const removeMetrics=()=>{
+    if(!confirm("Delete this metrics entry?")) return;
+    const next={...data.metrics}; delete next[date];
+    setData({...data,metrics:next});
+  };
 
   const wtData=last30().map(d=>data.metrics[d]?.weight||null);
   const moodData=last30().map(d=>data.metrics[d]?.mood||null);
