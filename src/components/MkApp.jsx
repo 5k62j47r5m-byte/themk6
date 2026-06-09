@@ -1025,11 +1025,17 @@ const Metrics = ({data,setData,date,setDate}) => {
       <DatePicker date={date} setDate={setDate} accent={C.pale}/>
 
       {ex&&(
-        <div style={{display:"flex",gap:1,marginBottom:32}}>
-          {ex.weight!=null&&<StatTile label="WEIGHT" value={ex.weight} accent={C.white}/>}
-          <StatTile label="MOOD"   value={`${ex.mood}/5`}   accent={C.orange}/>
-          <StatTile label="ENERGY" value={`${ex.energy}/5`} accent={C.silver}/>
-        </div>
+        <>
+          <div style={{display:"flex",gap:1,marginBottom:12}}>
+            {ex.weight!=null&&<StatTile label="WEIGHT" value={ex.weight} accent={C.white}/>}
+            <StatTile label="MOOD"   value={`${ex.mood}/5`}   accent={C.orange}/>
+            <StatTile label="ENERGY" value={`${ex.energy}/5`} accent={C.silver}/>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:32,justifyContent:"flex-end"}}>
+            <button onClick={loadMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+            <button onClick={removeMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.orange,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>DELETE</button>
+          </div>
+        </>
       )}
 
       <div style={{background:C.surface,padding:"22px 20px",marginBottom:32}}>
