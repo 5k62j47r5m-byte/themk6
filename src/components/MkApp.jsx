@@ -616,7 +616,22 @@ const Workout = ({data,setData,date,setDate}) => {
     setNotes("");setWt("");
   };
   const remove=i=>{
+    if(!confirm("Delete this exercise?")) return;
     setData({...data,workouts:{...data.workouts,[date]:{exercises:day.exercises.filter((_,idx)=>idx!==i)}}});
+  };
+  const edit=i=>{
+    const cur=day.exercises[i];
+    const sets=prompt("Sets",String(cur.sets)); if(sets===null) return;
+    const reps=prompt("Reps",String(cur.reps)); if(reps===null) return;
+    const wt=prompt("Weight (lbs, blank for none)",cur.weight!=null?String(cur.weight):""); if(wt===null) return;
+    const notes=prompt("Notes",cur.notes||""); if(notes===null) return;
+    const next={...cur,
+      sets:parseInt(sets)||cur.sets,
+      reps:parseInt(reps)||cur.reps,
+      weight:wt.trim()===""?null:parseFloat(wt),
+      notes,
+    };
+    setData({...data,workouts:{...data.workouts,[date]:{exercises:day.exercises.map((e,idx)=>idx===i?next:e)}}});
   };
 
   const totalSets=(day.exercises||[]).reduce((a,e)=>a+e.sets,0);
@@ -715,7 +730,10 @@ const Workout = ({data,setData,date,setDate}) => {
                     {ex.notes&&<span style={{color:C.ghost}}>{ex.notes}</span>}
                   </div>
                 </div>
-                <button onClick={()=>remove(i)} style={{background:"none",border:"none",color:C.ghost,cursor:"pointer",fontSize:18,lineHeight:1,padding:"0 4px"}}>×</button>
+                <div style={{display:"flex",gap:4,flexShrink:0}}>
+                  <button onClick={()=>edit(i)} title="Edit" style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.15em",fontWeight:700,padding:"4px 8px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+                  <button onClick={()=>remove(i)} title="Delete" style={{background:"none",border:`1px solid ${C.rule}`,color:C.ghost,cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 8px",borderRadius:4}}>×</button>
+                </div>
               </div>
             ))}
           </>
@@ -800,6 +818,16 @@ const Sleep = ({data,setData,date,setDate}) => {
   };
 
   const log=()=>setData({...data,sleep:{...data.sleep,[date]:{bedtime:bed,wakeTime:wake,hours:hrs(bed,wake),quality:q}}});
+  const removeSleep=(d)=>{
+    if(!confirm("Delete this sleep entry?")) return;
+    const next={...data.sleep}; delete next[d];
+    setData({...data,sleep:next});
+  };
+  const loadSleep=(d)=>{
+    const s=data.sleep[d]; if(!s) return;
+    setBed(s.bedtime); setWake(s.wakeTime); setQ(s.quality);
+    setDate(d);
+  };
   const ex=data.sleep[date];
   const h=ex?parseFloat(ex.hours):0;
   const recent=last7().reverse();
@@ -820,6 +848,10 @@ const Sleep = ({data,setData,date,setDate}) => {
           {h<6&&<div style={{...T.micro,color:C.orange,marginTop:10}}>A weapon left unsharpened is just dead weight.</div>}
           {h>=8&&<div style={{...T.micro,color:C.silver,marginTop:10}}>Optimized. The machine is ready.</div>}
           {h>=6&&h<8&&<div style={{...T.micro,color:C.ghost,marginTop:10}}>Adequate. Not optimal.</div>}
+          <div style={{display:"flex",gap:8,marginTop:14}}>
+            <button onClick={()=>loadSleep(date)} style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+            <button onClick={()=>removeSleep(date)} style={{background:"none",border:`1px solid ${C.rule}`,color:C.orange,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>DELETE</button>
+          </div>
         </div>
       )}
 
@@ -853,10 +885,12 @@ const Sleep = ({data,setData,date,setDate}) => {
         const h2=parseFloat(s.hours);
         const c=h2<6?C.orange:h2>=8?C.white:C.pale;
         return (
-          <div key={d} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${C.rule}`}}>
-            <span style={{fontSize:11,color:C.ghost,letterSpacing:"0.08em"}}>{d}</span>
+          <div key={d} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${C.rule}`,gap:10}}>
+            <span style={{fontSize:11,color:C.ghost,letterSpacing:"0.08em",flex:1}}>{d}</span>
             <span style={{fontSize:22,fontWeight:300,color:c,fontVariantNumeric:"tabular-nums"}}>{s.hours}h</span>
-            <Lbl style={{color:C.ghost}}>{s.quality}</Lbl>
+            <Lbl style={{color:C.ghost,flex:1,textAlign:"right"}}>{s.quality}</Lbl>
+            <button onClick={()=>loadSleep(d)} title="Edit" style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:9,letterSpacing:"0.15em",fontWeight:700,padding:"3px 7px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+            <button onClick={()=>removeSleep(d)} title="Delete" style={{background:"none",border:`1px solid ${C.rule}`,color:C.ghost,cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 7px",borderRadius:4}}>×</button>
           </div>
         );
       })}
@@ -877,7 +911,17 @@ const Tasks = ({data,setData,date,setDate}) => {
     setTxt("");setDl("");
   };
   const toggle=id=>setData({...data,tasks:{...data.tasks,[date]:tasks.map(t=>t.id===id?{...t,done:!t.done}:t)}});
-  const remove=id=>setData({...data,tasks:{...data.tasks,[date]:tasks.filter(t=>t.id!==id)}});
+  const remove=id=>{
+    if(!confirm("Delete this task?")) return;
+    setData({...data,tasks:{...data.tasks,[date]:tasks.filter(t=>t.id!==id)}});
+  };
+  const editTask=id=>{
+    const t=tasks.find(x=>x.id===id); if(!t) return;
+    const text=prompt("Task",t.text); if(text===null||!text.trim()) return;
+    const deadline=prompt("Deadline (YYYY-MM-DDTHH:MM, blank for none)",t.deadline||"");
+    if(deadline===null) return;
+    setData({...data,tasks:{...data.tasks,[date]:tasks.map(x=>x.id===id?{...x,text,deadline}:x)}});
+  };
 
   const urgencyColor=dl=>{
     if(!dl) return C.rim;
@@ -941,7 +985,10 @@ const Tasks = ({data,setData,date,setDate}) => {
                     </div>
                   )}
                 </div>
-                <button onClick={()=>remove(task.id)} style={{background:"none",border:"none",color:C.ghost,cursor:"pointer",fontSize:18,lineHeight:1,flexShrink:0}}>×</button>
+                <div style={{display:"flex",gap:4,flexShrink:0}}>
+                  <button onClick={()=>editTask(task.id)} title="Edit" style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:9,letterSpacing:"0.15em",fontWeight:700,padding:"3px 7px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+                  <button onClick={()=>remove(task.id)} title="Delete" style={{background:"none",border:`1px solid ${C.rule}`,color:C.ghost,cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 7px",borderRadius:4}}>×</button>
+                </div>
               </div>
             ))}
           </>
@@ -959,6 +1006,15 @@ const Metrics = ({data,setData,date,setDate}) => {
   const ex=data.metrics[date];
 
   const log=()=>setData({...data,metrics:{...data.metrics,[date]:{weight:wt?parseFloat(wt):null,mood:parseInt(mood),energy:parseInt(energy)}}});
+  const loadMetrics=()=>{
+    if(!ex) return;
+    setWt(ex.weight!=null?String(ex.weight):""); setMood(ex.mood||3); setEnergy(ex.energy||3);
+  };
+  const removeMetrics=()=>{
+    if(!confirm("Delete this metrics entry?")) return;
+    const next={...data.metrics}; delete next[date];
+    setData({...data,metrics:next});
+  };
 
   const wtData=last30().map(d=>data.metrics[d]?.weight||null);
   const moodData=last30().map(d=>data.metrics[d]?.mood||null);
@@ -969,11 +1025,17 @@ const Metrics = ({data,setData,date,setDate}) => {
       <DatePicker date={date} setDate={setDate} accent={C.pale}/>
 
       {ex&&(
-        <div style={{display:"flex",gap:1,marginBottom:32}}>
-          {ex.weight!=null&&<StatTile label="WEIGHT" value={ex.weight} accent={C.white}/>}
-          <StatTile label="MOOD"   value={`${ex.mood}/5`}   accent={C.orange}/>
-          <StatTile label="ENERGY" value={`${ex.energy}/5`} accent={C.silver}/>
-        </div>
+        <>
+          <div style={{display:"flex",gap:1,marginBottom:12}}>
+            {ex.weight!=null&&<StatTile label="WEIGHT" value={ex.weight} accent={C.white}/>}
+            <StatTile label="MOOD"   value={`${ex.mood}/5`}   accent={C.orange}/>
+            <StatTile label="ENERGY" value={`${ex.energy}/5`} accent={C.silver}/>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:32,justifyContent:"flex-end"}}>
+            <button onClick={loadMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+            <button onClick={removeMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.orange,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>DELETE</button>
+          </div>
+        </>
       )}
 
       <div style={{background:C.surface,padding:"22px 20px",marginBottom:32}}>
