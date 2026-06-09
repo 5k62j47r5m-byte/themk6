@@ -730,7 +730,10 @@ const Workout = ({data,setData,date,setDate}) => {
                     {ex.notes&&<span style={{color:C.ghost}}>{ex.notes}</span>}
                   </div>
                 </div>
-                <button onClick={()=>remove(i)} style={{background:"none",border:"none",color:C.ghost,cursor:"pointer",fontSize:18,lineHeight:1,padding:"0 4px"}}>×</button>
+                <div style={{display:"flex",gap:4,flexShrink:0}}>
+                  <button onClick={()=>edit(i)} title="Edit" style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.15em",fontWeight:700,padding:"4px 8px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+                  <button onClick={()=>remove(i)} title="Delete" style={{background:"none",border:`1px solid ${C.rule}`,color:C.ghost,cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 8px",borderRadius:4}}>×</button>
+                </div>
               </div>
             ))}
           </>
