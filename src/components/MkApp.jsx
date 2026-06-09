@@ -848,6 +848,10 @@ const Sleep = ({data,setData,date,setDate}) => {
           {h<6&&<div style={{...T.micro,color:C.orange,marginTop:10}}>A weapon left unsharpened is just dead weight.</div>}
           {h>=8&&<div style={{...T.micro,color:C.silver,marginTop:10}}>Optimized. The machine is ready.</div>}
           {h>=6&&h<8&&<div style={{...T.micro,color:C.ghost,marginTop:10}}>Adequate. Not optimal.</div>}
+          <div style={{display:"flex",gap:8,marginTop:14}}>
+            <button onClick={()=>loadSleep(date)} style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+            <button onClick={()=>removeSleep(date)} style={{background:"none",border:`1px solid ${C.rule}`,color:C.orange,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>DELETE</button>
+          </div>
         </div>
       )}
 
