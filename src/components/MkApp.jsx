@@ -985,7 +985,10 @@ const Tasks = ({data,setData,date,setDate}) => {
                     </div>
                   )}
                 </div>
-                <button onClick={()=>remove(task.id)} style={{background:"none",border:"none",color:C.ghost,cursor:"pointer",fontSize:18,lineHeight:1,flexShrink:0}}>×</button>
+                <div style={{display:"flex",gap:4,flexShrink:0}}>
+                  <button onClick={()=>editTask(task.id)} title="Edit" style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:9,letterSpacing:"0.15em",fontWeight:700,padding:"3px 7px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
+                  <button onClick={()=>remove(task.id)} title="Delete" style={{background:"none",border:`1px solid ${C.rule}`,color:C.ghost,cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 7px",borderRadius:4}}>×</button>
+                </div>
               </div>
             ))}
           </>
