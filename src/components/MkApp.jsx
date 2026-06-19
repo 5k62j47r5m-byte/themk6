@@ -64,6 +64,7 @@ const SP = {
   tasks:   { primary: YELLOW, secondary: CYAN   },
   metrics: { primary: CYAN,   secondary: YELLOW },
   week:    { primary: YELLOW, secondary: CYAN   },
+  drill:   { primary: YELLOW, secondary: CYAN   },
 };
 
 const VERSION = "The Mk16";
@@ -75,6 +76,7 @@ const SECTIONS = [
   { id:"tasks",   label:"TASKS",   Icon: ListChecks   },
   { id:"metrics", label:"METRICS", Icon: Activity     },
   { id:"week",    label:"WEEK",    Icon: CalendarDays },
+  { id:"drill",   label:"DRILL",   Icon: Flame        },
 ];
 
 const MUSCLE_GROUPS = ["Chest","Back","Shoulders","Biceps","Triceps","Legs","Glutes","Core","Calves"];
