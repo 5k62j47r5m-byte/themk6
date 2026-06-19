@@ -1155,6 +1155,117 @@ const Week = ({data}) => {
   );
 };
 
+// ─── DRILL ────────────────────────────────────────────────────────────────────
+const Drill = () => {
+  const [msgs,setMsgs]=useState([]);
+  const [input,setInput]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [err,setErr]=useState("");
+  const endRef=useRef(null);
+
+  useEffect(()=>{ endRef.current?.scrollIntoView({behavior:"smooth"}); },[msgs,busy]);
+
+  const send=async()=>{
+    const text=input.trim();
+    if(!text||busy) return;
+    const next=[...msgs,{role:"user",content:text}].slice(-10);
+    setMsgs(next); setInput(""); setBusy(true); setErr("");
+    try{
+      const r=await fetch("/api/drill",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({messages:next}),
+      });
+      if(!r.ok){
+        if(r.status===429) throw new Error("Rate limited. Wait, then try again.");
+        if(r.status===402) throw new Error("AI credits exhausted.");
+        throw new Error("Upstream failure.");
+      }
+      const j=await r.json();
+      setMsgs(m=>[...m,{role:"assistant",content:j.content||"Speak with intent."}].slice(-10));
+    }catch(e){ setErr(e.message||"Failed."); }
+    finally{ setBusy(false); }
+  };
+
+  const onKey=e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } };
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 220px)",minHeight:480}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,paddingBottom:14,borderBottom:`1px solid ${C.rule}`}}>
+        <div>
+          <div style={{fontSize:11,letterSpacing:"0.24em",color:C.ghost,fontWeight:600}}>DIRECTIVE CHANNEL</div>
+          <div style={{fontSize:22,fontWeight:800,letterSpacing:"0.04em",color:C.orange,marginTop:4,textShadow:`0 0 18px ${GLOW_Y}`}}>DRILL</div>
+        </div>
+        {msgs.length>0&&(
+          <button onClick={()=>{setMsgs([]);setErr("");}} style={{
+            background:"transparent",border:`1px solid ${C.rule}`,color:C.ghost,
+            padding:"6px 12px",fontSize:10,letterSpacing:"0.18em",fontWeight:600,
+            fontFamily:"inherit",cursor:"pointer",
+          }}>CLEAR</button>
+        )}
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:"4px 2px 12px",display:"flex",flexDirection:"column",gap:18}}>
+        {msgs.length===0&&(
+          <div style={{color:C.ghost,fontSize:13,lineHeight:1.7,padding:"24px 0",fontStyle:"italic"}}>
+            Speak. State the failure. State the test. Output is the only answer.
+          </div>
+        )}
+        {msgs.map((m,i)=>m.role==="user"?(
+          <div key={i} style={{alignSelf:"flex-end",maxWidth:"82%"}}>
+            <div style={{
+              background:C.surface,border:`1px solid ${C.rule}`,
+              padding:"10px 14px",color:C.white,fontSize:14,lineHeight:1.55,
+              whiteSpace:"pre-wrap",fontFamily:"'JetBrains Mono','SF Mono',monospace",
+            }}>{m.content}</div>
+          </div>
+        ):(
+          <div key={i} style={{alignSelf:"flex-start",maxWidth:"88%"}}>
+            <div style={{fontSize:9,letterSpacing:"0.28em",color:C.orange,fontWeight:700,marginBottom:6}}>▮ DIRECTIVE</div>
+            <div style={{
+              color:C.pale,fontSize:15,lineHeight:1.6,
+              whiteSpace:"pre-wrap",fontFamily:"'JetBrains Mono','SF Mono',monospace",
+              borderLeft:`2px solid ${C.orange}`,paddingLeft:14,
+            }}>{m.content}</div>
+          </div>
+        ))}
+        {busy&&(
+          <div style={{alignSelf:"flex-start"}}>
+            <div style={{fontSize:9,letterSpacing:"0.28em",color:C.orange,fontWeight:700,marginBottom:6}}>▮ DIRECTIVE</div>
+            <div style={{color:C.ghost,fontSize:15,fontFamily:"'JetBrains Mono','SF Mono',monospace",borderLeft:`2px solid ${C.orange}`,paddingLeft:14}}>
+              <span style={{animation:"blink 1s steps(1) infinite"}}>█</span>
+            </div>
+          </div>
+        )}
+        {err&&<div style={{color:"#ff6b6b",fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>{err}</div>}
+        <div ref={endRef}/>
+      </div>
+
+      <div style={{display:"flex",gap:0,borderTop:`1px solid ${C.rule}`,paddingTop:12,marginTop:8}}>
+        <input
+          value={input}
+          onChange={e=>setInput(e.target.value)}
+          onKeyDown={onKey}
+          disabled={busy}
+          placeholder="> report"
+          style={{
+            flex:1,background:C.void,border:`1px solid ${C.rule}`,
+            color:C.white,padding:"12px 14px",fontSize:14,
+            fontFamily:"'JetBrains Mono','SF Mono',monospace",outline:"none",
+          }}
+        />
+        <button onClick={send} disabled={busy||!input.trim()} style={{
+          background:input.trim()&&!busy?C.orange:C.surface,
+          color:input.trim()&&!busy?C.charcoal:C.ghost,
+          border:`1px solid ${C.rule}`,borderLeft:"none",
+          padding:"0 22px",fontSize:11,letterSpacing:"0.22em",fontWeight:700,
+          fontFamily:"inherit",cursor:busy||!input.trim()?"not-allowed":"pointer",
+        }}>SEND</button>
+      </div>
+      <style>{`@keyframes blink{50%{opacity:0}}`}</style>
+    </div>
+  );
+};
+
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function Mk1() {
   const [active,setActive]=useState("home");
