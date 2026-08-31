@@ -1277,6 +1277,10 @@ export default function Mk1() {
   const [data,saveCloud,loaded]=useCloud();
   const {workouts,sleep,tasks,metrics}=data;
   const [streaks,setStreaks]=useState({});
+  const [todayLabel,setTodayLabel]=useState("");
+  useEffect(()=>{
+    setTodayLabel(new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}).toUpperCase());
+  },[]);
 
   const setData=nd=>{
     const patch={};
