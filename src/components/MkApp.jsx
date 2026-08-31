@@ -1375,7 +1375,7 @@ export default function Mk1() {
 
           <div style={{padding:"20px 24px",borderTop:`1px solid ${C.rule}`}}>
             <div style={{...T.micro,color:C.ghost,lineHeight:2.2}}>
-              {new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}).toUpperCase()}
+              {todayLabel}
             </div>
           </div>
         </aside>
