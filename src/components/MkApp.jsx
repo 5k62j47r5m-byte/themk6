@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays, Flame } from "lucide-react";
+import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays, Flame, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
@@ -63,6 +63,7 @@ const SP = {
   tasks:   { primary: YELLOW, secondary: CYAN   },
   metrics: { primary: CYAN,   secondary: YELLOW },
   week:    { primary: YELLOW, secondary: CYAN   },
+  budget:  { primary: CYAN,   secondary: YELLOW },
   drill:   { primary: YELLOW, secondary: CYAN   },
 };
 
@@ -75,6 +76,7 @@ const SECTIONS = [
   { id:"tasks",   label:"TASKS",   Icon: ListChecks   },
   { id:"metrics", label:"METRICS", Icon: Activity     },
   { id:"week",    label:"WEEK",    Icon: CalendarDays },
+  { id:"budget",  label:"BUDGET",  Icon: Wallet       },
   { id:"drill",   label:"DRILL",   Icon: Flame        },
 ];
 
@@ -172,7 +174,7 @@ const useLS = (key, init) => {
 };
 
 // Shared cloud singleton — every device sees the same logs in real time.
-const EMPTY = {workouts:{},sleep:{},tasks:{},metrics:{},maxw:{}};
+const EMPTY = {workouts:{},sleep:{},tasks:{},metrics:{},maxw:{},budget:{}};
 const useCloud = () => {
   const [state,setState] = useState(EMPTY);
   const [loaded,setLoaded] = useState(false);
@@ -183,6 +185,7 @@ const useCloud = () => {
       if(data) setState({
         workouts:data.workouts||{}, sleep:data.sleep||{},
         tasks:data.tasks||{}, metrics:data.metrics||{}, maxw:data.maxw||{},
+        budget:data.budget||{},
       });
       setLoaded(true);
     });
@@ -192,6 +195,7 @@ const useCloud = () => {
         setState({
           workouts:r.workouts||{}, sleep:r.sleep||{},
           tasks:r.tasks||{}, metrics:r.metrics||{}, maxw:r.maxw||{},
+          budget:r.budget||{},
         });
       }).subscribe();
     return ()=>{alive=false;supabase.removeChannel(ch);};
@@ -201,7 +205,8 @@ const useCloud = () => {
       const next={...prev,...patch};
       supabase.from("mk_state").update({
         workouts:next.workouts, sleep:next.sleep, tasks:next.tasks,
-        metrics:next.metrics, maxw:next.maxw, updated_at:new Date().toISOString(),
+        metrics:next.metrics, maxw:next.maxw, budget:next.budget||{},
+        updated_at:new Date().toISOString(),
       }).eq("id","singleton").then(({error})=>{ if(error) console.error("[mk_state]",error); });
       return next;
     });
@@ -1265,6 +1270,542 @@ const Drill = () => {
   );
 };
 
+// ─── BUDGET ───────────────────────────────────────────────────────────────────
+const BCATS = ["Food","Gas","Subscriptions","Rent/Bills","Entertainment","Shopping","Other"];
+const GOOD = "#55CC88", BAD = "#FF6B4A";
+const money = n => (Number(n)<0?"-":"")+"$"+Math.abs(Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const money0 = n => (Number(n)<0?"-":"")+"$"+Math.round(Math.abs(Number(n)||0)).toLocaleString();
+const pctColor = p => p>=100?BAD : p>=75?YELLOW : GOOD;
+const monthKey = d => (d||"").slice(0,7);
+const MN = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
+const Bar = ({pct,color,h=10}) => (
+  <div style={{height:h,background:C.void,borderRadius:999,overflow:"hidden",border:`1px solid ${C.rule}`}}>
+    <div style={{
+      height:"100%",width:`${Math.max(0,Math.min(100,pct))}%`,
+      background:`linear-gradient(90deg, ${color}aa, ${color})`,
+      boxShadow:`0 0 12px ${color}66`,transition:"width 0.35s ease",borderRadius:999,
+    }}/>
+  </div>
+);
+
+const Alert = ({text,color=BAD}) => (
+  <div style={{
+    display:"flex",alignItems:"center",gap:10,
+    background:`linear-gradient(160deg, ${color}22, ${C.surface})`,
+    border:`1px solid ${color}77`,borderLeft:`4px solid ${color}`,
+    borderRadius:12,padding:"13px 16px",marginBottom:10,
+    boxShadow:`0 2px 10px ${SHADOW}`,
+  }}>
+    <span style={{color,fontSize:15,fontWeight:800,lineHeight:1}}>!</span>
+    <span style={{fontSize:13,fontWeight:600,color:C.white,letterSpacing:"0.02em"}}>{text}</span>
+  </div>
+);
+
+const scheduledInMonth = (s,y,m) => {
+  if(!s.due) return [];
+  const d0=new Date(s.due+"T12:00:00");
+  const start=new Date(y,m,1,12), end=new Date(y,m+1,0,12);
+  const out=[];
+  if(s.recurrence==="weekly"){
+    const d=new Date(d0);
+    while(d<=end){ if(d>=start) out.push(new Date(d)); d.setDate(d.getDate()+7); }
+  } else if(s.recurrence==="monthly"){
+    const d=new Date(y,m,d0.getDate(),12);
+    if(d.getMonth()===m && d>=d0) out.push(d);
+  } else {
+    if(d0>=start&&d0<=end) out.push(d0);
+  }
+  return out;
+};
+
+const Budget = ({data,setData}) => {
+  const d0=data.budget||{};
+  const b={
+    accounts:{savings:0,checking:0,creditUsed:0,...(d0.accounts||{})},
+    categories:d0.categories||BCATS,
+    txns:d0.txns||[],
+    limits:d0.limits||{},
+    settings:{checkingMin:200,creditLimit:1000,creditPct:30,...(d0.settings||{})},
+    scheduled:d0.scheduled||[],
+  };
+  const save=patch=>setData({...data,budget:{...b,...patch}});
+
+  const A=SP.budget.primary, A2=SP.budget.secondary;
+
+  // ─ purchase form
+  const [amt,setAmt]=useState("");
+  const [tdate,setTdate]=useState(today());
+  const [acct,setAcct]=useState("checking");
+  const [cat,setCat]=useState(b.categories[0]||"Other");
+  const [note,setNote]=useState("");
+
+  // ─ filters
+  const [fCat,setFCat]=useState("All");
+  const [fFrom,setFFrom]=useState("");
+  const [fTo,setFTo]=useState("");
+
+  // ─ calendar month
+  const [cm,setCm]=useState(()=>{const n=new Date();return {y:n.getFullYear(),m:n.getMonth()};});
+
+  const applyTxn=(acc,t,sign)=>{
+    const n={...acc};
+    if(t.account==="credit") n.creditUsed=(+n.creditUsed||0)+sign*t.amount;
+    else n.checking=(+n.checking||0)-sign*t.amount;
+    return n;
+  };
+
+  const addTxn=()=>{
+    const v=parseFloat(amt);
+    if(!v||v<=0) return;
+    const t={id:Date.now(),amount:v,date:tdate,account:acct,category:cat,note:note.trim()};
+    save({txns:[t,...b.txns],accounts:applyTxn(b.accounts,t,1)});
+    setAmt("");setNote("");
+  };
+  const delTxn=id=>{
+    const t=b.txns.find(x=>x.id===id); if(!t) return;
+    if(!confirm("Delete this purchase? The balance will be restored.")) return;
+    save({txns:b.txns.filter(x=>x.id!==id),accounts:applyTxn(b.accounts,t,-1)});
+  };
+  const editTxn=id=>{
+    const t=b.txns.find(x=>x.id===id); if(!t) return;
+    const a=prompt("Amount",t.amount); if(a===null) return;
+    const dt=prompt("Date (YYYY-MM-DD)",t.date); if(dt===null) return;
+    const ac=prompt("Account (checking / credit)",t.account); if(ac===null) return;
+    const cc=prompt(`Category (${b.categories.join(", ")})`,t.category); if(cc===null) return;
+    const nn=prompt("Note",t.note||""); if(nn===null) return;
+    const nt={...t,amount:parseFloat(a)||t.amount,date:dt||t.date,
+      account:ac==="credit"?"credit":"checking",category:cc||t.category,note:nn};
+    let accts=applyTxn(b.accounts,t,-1);
+    accts=applyTxn(accts,nt,1);
+    save({txns:b.txns.map(x=>x.id===id?nt:x),accounts:accts});
+  };
+
+  const setBal=(key,label)=>{
+    const v=prompt(`Set ${label}`,b.accounts[key]??0); if(v===null) return;
+    save({accounts:{...b.accounts,[key]:parseFloat(v)||0}});
+  };
+  const reconcile=(key,label)=>{
+    const v=prompt(`Reconcile — enter the real ${label} from your bank`,b.accounts[key]??0);
+    if(v===null) return;
+    const nv=parseFloat(v); if(isNaN(nv)) return;
+    const drift=nv-(+b.accounts[key]||0);
+    save({accounts:{...b.accounts,[key]:nv}});
+    alert(`${label} reconciled. Drift corrected: ${money(drift)}`);
+  };
+
+  // ─ categories editing
+  const addCat=()=>{
+    const n=prompt("New category name"); if(!n||!n.trim()) return;
+    if(b.categories.includes(n.trim())) return;
+    save({categories:[...b.categories,n.trim()]});
+  };
+  const renameCat=c=>{
+    const n=prompt("Rename category",c); if(!n||!n.trim()||n===c) return;
+    save({
+      categories:b.categories.map(x=>x===c?n.trim():x),
+      txns:b.txns.map(t=>t.category===c?{...t,category:n.trim()}:t),
+      limits:Object.fromEntries(Object.entries(b.limits).map(([k,v])=>[k===c?n.trim():k,v])),
+    });
+  };
+  const delCat=c=>{
+    if(!confirm(`Remove category "${c}"? Existing purchases keep the label.`)) return;
+    const lim={...b.limits}; delete lim[c];
+    save({categories:b.categories.filter(x=>x!==c),limits:lim});
+  };
+  const setLimit=c=>{
+    const v=prompt(`Monthly limit for ${c}`,b.limits[c]??""); if(v===null) return;
+    const lim={...b.limits};
+    if(v.trim()==="") delete lim[c]; else lim[c]=parseFloat(v)||0;
+    save({limits:lim});
+  };
+  const setSetting=(key,label)=>{
+    const v=prompt(label,b.settings[key]??0); if(v===null) return;
+    save({settings:{...b.settings,[key]:parseFloat(v)||0}});
+  };
+
+  // ─ scheduled
+  const [sName,setSName]=useState("");
+  const [sAmt,setSAmt]=useState("");
+  const [sDue,setSDue]=useState(today());
+  const [sRec,setSRec]=useState("monthly");
+  const addSched=()=>{
+    if(!sName.trim()||!parseFloat(sAmt)) return;
+    save({scheduled:[...b.scheduled,{id:Date.now(),name:sName.trim(),amount:parseFloat(sAmt),due:sDue,recurrence:sRec}]});
+    setSName("");setSAmt("");
+  };
+  const delSched=id=>{
+    if(!confirm("Delete this scheduled expense?")) return;
+    save({scheduled:b.scheduled.filter(s=>s.id!==id)});
+  };
+  const editSched=id=>{
+    const s=b.scheduled.find(x=>x.id===id); if(!s) return;
+    const n=prompt("Name",s.name); if(n===null) return;
+    const a=prompt("Amount",s.amount); if(a===null) return;
+    const dd=prompt("Due date (YYYY-MM-DD)",s.due); if(dd===null) return;
+    const r=prompt("Recurrence (one-time / weekly / monthly)",s.recurrence); if(r===null) return;
+    save({scheduled:b.scheduled.map(x=>x.id===id?{...x,name:n||x.name,amount:parseFloat(a)||x.amount,
+      due:dd||x.due,recurrence:["weekly","monthly","one-time"].includes(r)?r:x.recurrence}:x)});
+  };
+
+  // ─ derived
+  const thisMonth=monthKey(today());
+  const spentByCat={};
+  b.txns.filter(t=>monthKey(t.date)===thisMonth).forEach(t=>{spentByCat[t.category]=(spentByCat[t.category]||0)+t.amount;});
+  const monthTotal=Object.values(spentByCat).reduce((a,c)=>a+c,0);
+
+  const months=Array.from({length:6},(_,i)=>{
+    const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-(5-i));
+    const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    return {k,label:MN[d.getMonth()],total:b.txns.filter(t=>monthKey(t.date)===k).reduce((a,t)=>a+t.amount,0)};
+  });
+  const maxMonth=Math.max(...months.map(m=>m.total),1);
+
+  const filtered=b.txns
+    .filter(t=>fCat==="All"||t.category===fCat)
+    .filter(t=>!fFrom||t.date>=fFrom)
+    .filter(t=>!fTo||t.date<=fTo)
+    .sort((x,y)=>(y.date+String(y.id)).localeCompare(x.date+String(x.id)));
+
+  const creditPctUsed=b.settings.creditLimit>0?(b.accounts.creditUsed/b.settings.creditLimit)*100:0;
+
+  const alerts=[];
+  if(b.accounts.checking<b.settings.checkingMin)
+    alerts.push(`Checking is ${money(b.accounts.checking)} — below your ${money(b.settings.checkingMin)} floor.`);
+  Object.entries(b.limits).forEach(([c,lim])=>{
+    if(lim>0&&(spentByCat[c]||0)>lim) alerts.push(`${c} budget blown: ${money(spentByCat[c])} of ${money(lim)}.`);
+  });
+  if(b.settings.creditLimit>0&&creditPctUsed>=b.settings.creditPct)
+    alerts.push(`Credit used is ${creditPctUsed.toFixed(0)}% of your limit — over your ${b.settings.creditPct}% line.`);
+
+  // ─ calendar grid
+  const first=new Date(cm.y,cm.m,1);
+  const daysInMonth=new Date(cm.y,cm.m+1,0).getDate();
+  const lead=first.getDay();
+  const cells=[...Array(lead).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
+  const schedMap={};
+  b.scheduled.forEach(s=>scheduledInMonth(s,cm.y,cm.m).forEach(dt=>{
+    const k=dt.getDate(); (schedMap[k]=schedMap[k]||[]).push(s);
+  }));
+  const monthSchedTotal=Object.values(schedMap).flat().reduce((a,s)=>a+(+s.amount||0),0);
+  const shiftMonth=n=>setCm(c=>{const d=new Date(c.y,c.m+n,1);return {y:d.getFullYear(),m:d.getMonth()};});
+
+  const miniBtn=(label,onClick,color)=>(
+    <button onClick={onClick} style={{
+      background:"none",border:`1px solid ${color||C.rule}`,color:color||C.silver,cursor:"pointer",
+      fontSize:9,letterSpacing:"0.15em",fontWeight:700,padding:"4px 8px",borderRadius:6,fontFamily:"inherit",
+    }}>{label}</button>
+  );
+
+  return (
+    <div>
+      {/* ALERTS */}
+      {alerts.length>0&&(
+        <div style={{marginBottom:32}}>
+          <Lbl color={BAD} style={{marginBottom:14}}>Alerts</Lbl>
+          {alerts.map((a,i)=><Alert key={i} text={a}/>)}
+        </div>
+      )}
+
+      {/* BALANCES */}
+      <Lbl style={{marginBottom:18}}>Accounts</Lbl>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16}}>
+        {[
+          {key:"savings",   label:"SAVINGS",     accent:A},
+          {key:"checking",  label:"CHECKING",    accent:b.accounts.checking<b.settings.checkingMin?BAD:A2},
+          {key:"creditUsed",label:"CREDIT USED", accent:pctColor(creditPctUsed)},
+        ].map(a=>(
+          <div key={a.key} style={{
+            background:`linear-gradient(160deg, ${C.surface}, ${C.base})`,
+            padding:"20px 14px",borderRadius:14,
+            border:`1px solid ${a.accent}44`,borderBottom:`3px solid ${a.accent}`,
+            boxShadow:`0 4px 12px ${SHADOW}, inset 0 1px 0 ${a.accent}22`,
+          }}>
+            <div style={{fontSize:24,fontWeight:800,color:a.accent,fontVariantNumeric:"tabular-nums",lineHeight:1,textShadow:`0 0 18px ${a.accent}55`}}>
+              {money0(b.accounts[a.key])}
+            </div>
+            <Lbl style={{marginTop:10}}>{a.label}</Lbl>
+            <div style={{display:"flex",gap:5,marginTop:12,flexWrap:"wrap"}}>
+              {miniBtn("SET",()=>setBal(a.key,a.label),C.silver)}
+              {miniBtn("RECONCILE",()=>reconcile(a.key,a.label),C.ghost)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* CREDIT */}
+      <div style={{background:C.surface,padding:"20px 18px",borderRadius:12,border:`1px solid ${C.rule}`,marginBottom:32}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <Lbl color={A}>Credit</Lbl>
+          <div style={{display:"flex",gap:5}}>
+            {miniBtn("LIMIT",()=>setSetting("creditLimit","Credit limit ($)"),C.silver)}
+            {miniBtn("WARN %",()=>setSetting("creditPct","Warn when credit used exceeds (%)"),C.ghost)}
+          </div>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:10}}>
+          <span style={{fontSize:20,fontWeight:800,color:pctColor(creditPctUsed),fontVariantNumeric:"tabular-nums"}}>
+            {money(b.accounts.creditUsed)}
+          </span>
+          <span style={{...T.micro,color:C.ghost}}>
+            {creditPctUsed.toFixed(0)}% of {money0(b.settings.creditLimit)} · warn at {b.settings.creditPct}%
+          </span>
+        </div>
+        <Bar pct={creditPctUsed} color={pctColor(creditPctUsed)}/>
+      </div>
+
+      {/* LOG PURCHASE */}
+      <div style={{background:C.surface,padding:"22px 20px",borderRadius:12,marginBottom:32,borderTop:`1px solid ${A}22`,boxShadow:`0 2px 8px ${SHADOW}`}}>
+        <Lbl color={A} style={{marginBottom:18}}>Log Purchase</Lbl>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+          <div>
+            <Lbl style={{marginBottom:8}}>Amount</Lbl>
+            <Input type="number" step="0.01" value={amt} onChange={e=>setAmt(e.target.value)} placeholder="0.00"
+              onKeyDown={e=>e.key==="Enter"&&addTxn()}/>
+          </div>
+          <div>
+            <Lbl style={{marginBottom:8}}>Date</Lbl>
+            <Input type="date" value={tdate} onChange={e=>setTdate(e.target.value)}/>
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+          <div>
+            <Lbl style={{marginBottom:8}}>Account</Lbl>
+            <Sel value={acct} onChange={e=>setAcct(e.target.value)}>
+              <option value="checking">Checking</option>
+              <option value="credit">Credit</option>
+            </Sel>
+          </div>
+          <div>
+            <Lbl style={{marginBottom:8}}>Category</Lbl>
+            <Sel value={cat} onChange={e=>setCat(e.target.value)}>
+              {b.categories.map(c=><option key={c} value={c}>{c}</option>)}
+            </Sel>
+          </div>
+        </div>
+        <Lbl style={{marginBottom:8}}>Note</Lbl>
+        <Input value={note} onChange={e=>setNote(e.target.value)} placeholder="Optional" style={{marginBottom:20}}
+          onKeyDown={e=>e.key==="Enter"&&addTxn()}/>
+        <Btn onClick={addTxn} accent={A} style={{width:"100%"}}>Log Purchase</Btn>
+      </div>
+
+      {/* BUDGETS */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+        <Lbl>Monthly Budgets</Lbl>
+        {miniBtn("+ CATEGORY",addCat,A2)}
+      </div>
+      <div style={{marginBottom:32}}>
+        {b.categories.map(c=>{
+          const spent=spentByCat[c]||0, lim=+b.limits[c]||0;
+          const pct=lim>0?(spent/lim)*100:0;
+          const col=lim>0?pctColor(pct):C.rule;
+          return (
+            <div key={c} style={{
+              background:C.surface,padding:"15px 16px",borderRadius:12,marginBottom:8,
+              border:`1px solid ${C.rule}`,borderLeft:`3px solid ${col}`,
+            }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,gap:8}}>
+                <span style={{fontSize:13,fontWeight:700,color:C.white,letterSpacing:"0.03em"}}>{c}</span>
+                <div style={{display:"flex",alignItems:"center",gap:5}}>
+                  <span style={{...T.micro,color:lim>0?col:C.ghost}}>
+                    {money0(spent)}{lim>0?` / ${money0(lim)}`:" · no limit"}
+                  </span>
+                  {miniBtn("LIMIT",()=>setLimit(c),C.silver)}
+                  {miniBtn("EDIT",()=>renameCat(c),C.ghost)}
+                  {miniBtn("×",()=>delCat(c),C.ghost)}
+                </div>
+              </div>
+              <Bar pct={lim>0?pct:0} color={lim>0?col:C.rule} h={9}/>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* TRENDS */}
+      <Lbl style={{marginBottom:18}}>Spending By Month</Lbl>
+      <div style={{
+        background:C.surface,borderRadius:12,border:`1px solid ${C.rule}`,padding:"20px 18px",marginBottom:16,
+        display:"flex",alignItems:"flex-end",gap:10,height:170,
+      }}>
+        {months.map(m=>(
+          <div key={m.k} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8,height:"100%",justifyContent:"flex-end"}}>
+            <div style={{...T.micro,fontSize:9,color:m.total>0?A:C.ghost}}>{m.total>0?money0(m.total):"—"}</div>
+            <div style={{
+              width:"100%",height:`${Math.max(2,(m.total/maxMonth)*100)}%`,
+              background:`linear-gradient(180deg, ${A}, ${A}55)`,
+              borderRadius:"6px 6px 0 0",boxShadow:`0 0 14px ${A}44`,transition:"height 0.35s",
+            }}/>
+            <Lbl style={{fontSize:9}}>{m.label}</Lbl>
+          </div>
+        ))}
+      </div>
+
+      <Lbl style={{marginBottom:14}}>This Month By Category · {money0(monthTotal)}</Lbl>
+      <div style={{marginBottom:32}}>
+        <div style={{display:"flex",height:16,borderRadius:999,overflow:"hidden",border:`1px solid ${C.rule}`,background:C.void,marginBottom:14}}>
+          {monthTotal>0
+            ? b.categories.filter(c=>spentByCat[c]).map((c,i)=>{
+                const cols=[A,A2,YELLOW_HI,CYAN_HI,YELLOW_LO,CYAN_LO,C.pale];
+                return <div key={c} title={`${c} ${money(spentByCat[c])}`} style={{width:`${(spentByCat[c]/monthTotal)*100}%`,background:cols[i%cols.length]}}/>;
+              })
+            : null}
+        </div>
+        {monthTotal>0
+          ? b.categories.filter(c=>spentByCat[c]).map((c,i)=>{
+              const cols=[A,A2,YELLOW_HI,CYAN_HI,YELLOW_LO,CYAN_LO,C.pale];
+              return (
+                <div key={c} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:`1px solid ${C.rule}`}}>
+                  <div style={{width:10,height:10,borderRadius:3,background:cols[i%cols.length],flexShrink:0}}/>
+                  <span style={{flex:1,fontSize:13,fontWeight:600,color:C.white}}>{c}</span>
+                  <span style={{...T.micro,color:C.ghost}}>{((spentByCat[c]/monthTotal)*100).toFixed(0)}%</span>
+                  <span style={{fontSize:13,fontWeight:700,color:cols[i%cols.length],fontVariantNumeric:"tabular-nums"}}>{money(spentByCat[c])}</span>
+                </div>
+              );
+            })
+          : <Empty text="Nothing spent this month."/>}
+      </div>
+
+      {/* TRANSACTIONS */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <Lbl>Transactions</Lbl>
+        <Lbl style={{color:C.ghost}}>{filtered.length} shown</Lbl>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:20}}>
+        <div>
+          <Lbl style={{marginBottom:6,fontSize:9}}>Category</Lbl>
+          <Sel value={fCat} onChange={e=>setFCat(e.target.value)}>
+            <option value="All">All</option>
+            {b.categories.map(c=><option key={c} value={c}>{c}</option>)}
+          </Sel>
+        </div>
+        <div>
+          <Lbl style={{marginBottom:6,fontSize:9}}>From</Lbl>
+          <Input type="date" value={fFrom} onChange={e=>setFFrom(e.target.value)}/>
+        </div>
+        <div>
+          <Lbl style={{marginBottom:6,fontSize:9}}>To</Lbl>
+          <Input type="date" value={fTo} onChange={e=>setFTo(e.target.value)}/>
+        </div>
+      </div>
+      <div style={{marginBottom:32}}>
+        {filtered.length===0
+          ? <Empty text="No purchases logged."/>
+          : filtered.map(t=>(
+              <div key={t.id} style={{
+                display:"flex",alignItems:"center",gap:12,padding:"12px 0 12px 12px",
+                borderBottom:`1px solid ${C.rule}`,
+                borderLeft:`2px solid ${t.account==="credit"?YELLOW:A}`,
+              }}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:600,color:C.white,letterSpacing:"0.02em"}}>
+                    {t.category}{t.note?<span style={{color:C.ghost,fontWeight:500}}> · {t.note}</span>:null}
+                  </div>
+                  <div style={{...T.micro,color:C.ghost,marginTop:5}}>
+                    {t.date} · {t.account==="credit"?"CREDIT":"CHECKING"}
+                  </div>
+                </div>
+                <span style={{fontSize:15,fontWeight:800,color:t.account==="credit"?YELLOW:A,fontVariantNumeric:"tabular-nums"}}>
+                  {money(t.amount)}
+                </span>
+                <div style={{display:"flex",gap:4,flexShrink:0}}>
+                  {miniBtn("EDIT",()=>editTxn(t.id),C.silver)}
+                  {miniBtn("×",()=>delTxn(t.id),C.ghost)}
+                </div>
+              </div>
+            ))}
+      </div>
+
+      {/* ALERT THRESHOLD */}
+      <div style={{background:C.surface,padding:"16px 18px",borderRadius:12,border:`1px solid ${C.rule}`,marginBottom:32,
+        display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}}>
+        <div>
+          <Lbl>Checking Floor</Lbl>
+          <div style={{fontSize:16,fontWeight:800,color:A2,marginTop:6,fontVariantNumeric:"tabular-nums"}}>{money0(b.settings.checkingMin)}</div>
+        </div>
+        {miniBtn("CHANGE",()=>setSetting("checkingMin","Warn when checking drops below ($)"),C.silver)}
+      </div>
+
+      {/* SCHEDULED / CALENDAR */}
+      <div style={{background:C.surface,padding:"22px 20px",borderRadius:12,marginBottom:24,borderTop:`1px solid ${A2}22`,boxShadow:`0 2px 8px ${SHADOW}`}}>
+        <Lbl color={A2} style={{marginBottom:18}}>Add Scheduled Expense</Lbl>
+        <Lbl style={{marginBottom:8}}>Name</Lbl>
+        <Input value={sName} onChange={e=>setSName(e.target.value)} placeholder="Rent, Netflix, car payment…" style={{marginBottom:16}}/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+          <div>
+            <Lbl style={{marginBottom:8}}>Amount</Lbl>
+            <Input type="number" step="0.01" value={sAmt} onChange={e=>setSAmt(e.target.value)} placeholder="0.00"/>
+          </div>
+          <div>
+            <Lbl style={{marginBottom:8}}>Due Date</Lbl>
+            <Input type="date" value={sDue} onChange={e=>setSDue(e.target.value)}/>
+          </div>
+        </div>
+        <Lbl style={{marginBottom:8}}>Recurrence</Lbl>
+        <Sel value={sRec} onChange={e=>setSRec(e.target.value)} style={{marginBottom:20}}>
+          <option value="one-time">One-time</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </Sel>
+        <Btn onClick={addSched} accent={A2} style={{width:"100%"}}>Schedule It</Btn>
+      </div>
+
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+        <Lbl>{MN[cm.m]} {cm.y} · {money0(monthSchedTotal)} due</Lbl>
+        <div style={{display:"flex",gap:5}}>
+          {miniBtn("‹ PREV",()=>shiftMonth(-1),C.silver)}
+          {miniBtn("NEXT ›",()=>shiftMonth(1),C.silver)}
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,marginBottom:20}}>
+        {["S","M","T","W","T","F","S"].map((d,i)=>(
+          <div key={i} style={{...T.micro,fontSize:9,color:C.ghost,textAlign:"center",paddingBottom:4}}>{d}</div>
+        ))}
+        {cells.map((day,i)=>{
+          if(day===null) return <div key={`e${i}`}/>;
+          const items=schedMap[day]||[];
+          const isToday=`${cm.y}-${String(cm.m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`===today();
+          return (
+            <div key={day} style={{
+              minHeight:62,background:isToday?`${A}18`:C.surface,
+              border:`1px solid ${isToday?A:C.rule}`,borderRadius:8,padding:"5px 5px 6px",
+            }}>
+              <div style={{...T.micro,fontSize:9,color:isToday?A:C.ghost,marginBottom:3}}>{day}</div>
+              {items.slice(0,2).map(s=>(
+                <div key={s.id+"-"+day} title={`${s.name} ${money(s.amount)}`} style={{
+                  background:`${YELLOW}22`,border:`1px solid ${YELLOW}66`,borderRadius:4,
+                  padding:"2px 3px",marginBottom:2,fontSize:8,fontWeight:700,color:YELLOW,
+                  whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",letterSpacing:"0.04em",
+                }}>{s.name} {money0(s.amount)}</div>
+              ))}
+              {items.length>2&&<div style={{fontSize:8,color:C.ghost,fontWeight:700}}>+{items.length-2}</div>}
+            </div>
+          );
+        })}
+      </div>
+
+      <Lbl style={{marginBottom:12}}>Scheduled Expenses</Lbl>
+      {b.scheduled.length===0
+        ? <Empty text="Nothing scheduled."/>
+        : b.scheduled.slice().sort((a,c)=>(a.due||"").localeCompare(c.due||"")).map(s=>(
+            <div key={s.id} style={{
+              display:"flex",alignItems:"center",gap:12,padding:"12px 0 12px 12px",
+              borderBottom:`1px solid ${C.rule}`,borderLeft:`2px solid ${YELLOW}`,
+            }}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:600,color:C.white}}>{s.name}</div>
+                <div style={{...T.micro,color:C.ghost,marginTop:5}}>{s.due} · {String(s.recurrence).toUpperCase()}</div>
+              </div>
+              <span style={{fontSize:15,fontWeight:800,color:YELLOW,fontVariantNumeric:"tabular-nums"}}>{money(s.amount)}</span>
+              <div style={{display:"flex",gap:4,flexShrink:0}}>
+                {miniBtn("EDIT",()=>editSched(s.id),C.silver)}
+                {miniBtn("×",()=>delSched(s.id),C.ghost)}
+              </div>
+            </div>
+          ))}
+    </div>
+  );
+};
+
+
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function Mk1() {
   const [active,setActive]=useState("home");
@@ -1272,6 +1813,10 @@ export default function Mk1() {
   const [data,saveCloud,loaded]=useCloud();
   const {workouts,sleep,tasks,metrics}=data;
   const [streaks,setStreaks]=useState({});
+  const [todayLabel,setTodayLabel]=useState("");
+  useEffect(()=>{
+    setTodayLabel(new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}).toUpperCase());
+  },[]);
 
   const setData=nd=>{
     const patch={};
@@ -1280,6 +1825,7 @@ export default function Mk1() {
     if(nd.tasks!==tasks)       patch.tasks=nd.tasks;
     if(nd.metrics!==metrics)   patch.metrics=nd.metrics;
     if(nd.maxw && nd.maxw!==data.maxw) patch.maxw=nd.maxw;
+    if(nd.budget && nd.budget!==data.budget) patch.budget=nd.budget;
     if(Object.keys(patch).length) saveCloud(patch);
   };
 
@@ -1307,6 +1853,7 @@ export default function Mk1() {
       case"tasks":   return <Tasks data={data} setData={setData} date={date} setDate={setDate}/>;
       case"metrics": return <Metrics data={data} setData={setData} date={date} setDate={setDate}/>;
       case"week":    return <Week data={data}/>;
+      case"budget":  return <Budget data={data} setData={setData}/>;
       case"drill":   return <Drill/>;
     }
   };
@@ -1368,7 +1915,7 @@ export default function Mk1() {
 
           <div style={{padding:"20px 24px",borderTop:`1px solid ${C.rule}`}}>
             <div style={{...T.micro,color:C.ghost,lineHeight:2.2}}>
-              {new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}).toUpperCase()}
+              {todayLabel}
             </div>
           </div>
         </aside>

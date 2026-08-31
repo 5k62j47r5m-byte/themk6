@@ -1,0 +1,1 @@
+ALTER TABLE public.mk_state ADD COLUMN IF NOT EXISTS budget jsonb NOT NULL DEFAULT '{}'::jsonb;

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       mk_state: {
         Row: {
+          budget: Json
           id: string
           maxw: Json
           metrics: Json
@@ -25,6 +26,7 @@ export type Database = {
           workouts: Json
         }
         Insert: {
+          budget?: Json
           id?: string
           maxw?: Json
           metrics?: Json
@@ -34,6 +36,7 @@ export type Database = {
           workouts?: Json
         }
         Update: {
+          budget?: Json
           id?: string
           maxw?: Json
           metrics?: Json
