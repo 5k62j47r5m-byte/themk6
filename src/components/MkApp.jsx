@@ -1285,6 +1285,7 @@ export default function Mk1() {
     if(nd.tasks!==tasks)       patch.tasks=nd.tasks;
     if(nd.metrics!==metrics)   patch.metrics=nd.metrics;
     if(nd.maxw && nd.maxw!==data.maxw) patch.maxw=nd.maxw;
+    if(nd.budget && nd.budget!==data.budget) patch.budget=nd.budget;
     if(Object.keys(patch).length) saveCloud(patch);
   };
 
