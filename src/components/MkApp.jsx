@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays, Flame } from "lucide-react";
+import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays, Flame, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
