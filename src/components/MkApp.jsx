@@ -174,7 +174,7 @@ const useLS = (key, init) => {
 };
 
 // Shared cloud singleton — every device sees the same logs in real time.
-const EMPTY = {workouts:{},sleep:{},tasks:{},metrics:{},maxw:{}};
+const EMPTY = {workouts:{},sleep:{},tasks:{},metrics:{},maxw:{},budget:{}};
 const useCloud = () => {
   const [state,setState] = useState(EMPTY);
   const [loaded,setLoaded] = useState(false);
@@ -185,6 +185,7 @@ const useCloud = () => {
       if(data) setState({
         workouts:data.workouts||{}, sleep:data.sleep||{},
         tasks:data.tasks||{}, metrics:data.metrics||{}, maxw:data.maxw||{},
+        budget:data.budget||{},
       });
       setLoaded(true);
     });
@@ -194,6 +195,7 @@ const useCloud = () => {
         setState({
           workouts:r.workouts||{}, sleep:r.sleep||{},
           tasks:r.tasks||{}, metrics:r.metrics||{}, maxw:r.maxw||{},
+          budget:r.budget||{},
         });
       }).subscribe();
     return ()=>{alive=false;supabase.removeChannel(ch);};
@@ -203,7 +205,8 @@ const useCloud = () => {
       const next={...prev,...patch};
       supabase.from("mk_state").update({
         workouts:next.workouts, sleep:next.sleep, tasks:next.tasks,
-        metrics:next.metrics, maxw:next.maxw, updated_at:new Date().toISOString(),
+        metrics:next.metrics, maxw:next.maxw, budget:next.budget||{},
+        updated_at:new Date().toISOString(),
       }).eq("id","singleton").then(({error})=>{ if(error) console.error("[mk_state]",error); });
       return next;
     });
