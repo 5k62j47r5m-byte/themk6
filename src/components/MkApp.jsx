@@ -1313,6 +1313,7 @@ export default function Mk1() {
       case"tasks":   return <Tasks data={data} setData={setData} date={date} setDate={setDate}/>;
       case"metrics": return <Metrics data={data} setData={setData} date={date} setDate={setDate}/>;
       case"week":    return <Week data={data}/>;
+      case"budget":  return <Budget data={data} setData={setData}/>;
       case"drill":   return <Drill/>;
     }
   };
