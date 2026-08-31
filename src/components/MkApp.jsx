@@ -63,6 +63,7 @@ const SP = {
   tasks:   { primary: YELLOW, secondary: CYAN   },
   metrics: { primary: CYAN,   secondary: YELLOW },
   week:    { primary: YELLOW, secondary: CYAN   },
+  budget:  { primary: CYAN,   secondary: YELLOW },
   drill:   { primary: YELLOW, secondary: CYAN   },
 };
 
@@ -75,6 +76,7 @@ const SECTIONS = [
   { id:"tasks",   label:"TASKS",   Icon: ListChecks   },
   { id:"metrics", label:"METRICS", Icon: Activity     },
   { id:"week",    label:"WEEK",    Icon: CalendarDays },
+  { id:"budget",  label:"BUDGET",  Icon: Wallet       },
   { id:"drill",   label:"DRILL",   Icon: Flame        },
 ];
 
