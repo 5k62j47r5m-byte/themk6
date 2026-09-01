@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays, Flame, Wallet } from "lucide-react";
+import { Home as HomeIcon, Dumbbell, Moon, Activity, CalendarDays, Flame, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
@@ -60,7 +60,6 @@ const SP = {
   home:    { primary: YELLOW, secondary: CYAN   },
   workout: { primary: CYAN,   secondary: YELLOW },
   sleep:   { primary: CYAN,   secondary: YELLOW },
-  tasks:   { primary: YELLOW, secondary: CYAN   },
   metrics: { primary: CYAN,   secondary: YELLOW },
   week:    { primary: YELLOW, secondary: CYAN   },
   budget:  { primary: CYAN,   secondary: YELLOW },
@@ -73,7 +72,6 @@ const SECTIONS = [
   { id:"home",    label:"HOME",    Icon: HomeIcon     },
   { id:"workout", label:"WORKOUT", Icon: Dumbbell     },
   { id:"sleep",   label:"SLEEP",   Icon: Moon         },
-  { id:"tasks",   label:"TASKS",   Icon: ListChecks   },
   { id:"metrics", label:"METRICS", Icon: Activity     },
   { id:"week",    label:"WEEK",    Icon: CalendarDays },
   { id:"budget",  label:"BUDGET",  Icon: Wallet       },
@@ -487,10 +485,9 @@ const Home = ({data,streaks}) => {
     return ()=>clearInterval(id);
   },[pool]);
   const quote=pool[qIdx%pool.length];
-  const s=data.sleep[t],w=data.workouts[t],m=data.metrics[t],tk=data.tasks[t]||[];
+  const s=data.sleep[t],w=data.workouts[t],m=data.metrics[t];
   const wkDays=last7();
   const sleepVals=wkDays.map(d=>data.sleep[d]?.hours).filter(Boolean).map(Number);
-  const moodVals=wkDays.map(d=>data.metrics[d]?.mood).filter(Boolean).map(Number);
   const wCount=wkDays.filter(d=>data.workouts[d]).length;
   const wts=wkDays.map(d=>data.metrics[d]?.weight).filter(Boolean).map(Number);
 
@@ -513,11 +510,10 @@ const Home = ({data,streaks}) => {
 
       {/* Streaks */}
       <Lbl style={{marginBottom:18}}>Streaks</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:36}}>
         {[
           {label:"WORKOUT",val:streaks.workout||0,accent:C.orange},
           {label:"SLEEP",  val:streaks.sleep||0,  accent:C.silver},
-          {label:"MOOD",   val:streaks.mood||0,   accent:C.pale},
           {label:"WEIGHT", val:streaks.weight||0, accent:CYAN_HI},
         ].map(({label,val,accent})=>(
           <div key={label} style={{
@@ -536,12 +532,11 @@ const Home = ({data,streaks}) => {
 
       {/* Status */}
       <Lbl style={{marginBottom:18}}>Status</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginBottom:36}}>
         {[
           {label:"WORKOUT",logged:!!w,detail:w?`${w.exercises?.length||0} exercises`:"Not logged",accent:SP.workout.primary},
           {label:"SLEEP",  logged:!!s,detail:s?`${s.hours}h · ${s.quality}`:"Not logged",          accent:SP.sleep.primary},
-          {label:"TASKS",  logged:tk.length>0,detail:tk.length>0?`${tk.filter(x=>x.done).length}/${tk.length} done`:"Nothing added",accent:SP.tasks.primary},
-          {label:"METRICS",logged:!!m,detail:m?`${m.weight||"—"} lbs · ${m.mood||"—"}/5`:"Not logged",accent:SP.metrics.primary},
+          {label:"METRICS",logged:!!m,detail:m?`${m.weight||"—"} lbs`:"Not logged",accent:SP.metrics.primary},
         ].map(item=>(
           <div key={item.label} style={{
             background:C.surface,padding:"20px 18px",borderRadius:12,
@@ -551,7 +546,7 @@ const Home = ({data,streaks}) => {
           }}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <Lbl>{item.label}</Lbl>
-              <span style={{fontSize:14,fontWeight:800,color:item.logged?"#55CC88":C.orange}}>{item.logged?"✓":"✗"}</span>
+              <span style={{fontSize:14,fontWeight:800,color:item.logged?CYAN:C.orange}}>{item.logged?"✓":"✗"}</span>
             </div>
             <div style={{fontSize:14,fontWeight:600,color:item.logged?C.white:C.ghost,letterSpacing:"0.02em"}}>{item.detail}</div>
           </div>
@@ -560,11 +555,10 @@ const Home = ({data,streaks}) => {
 
       {/* Week avg */}
       <Lbl style={{marginBottom:18}}>Week Average</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
         {[
           {label:"SLEEP",    val:sleepVals.length?(sleepVals.reduce((a,b)=>a+b)/sleepVals.length).toFixed(1)+"h":"—",accent:C.silver},
           {label:"WORKOUTS", val:`${wCount}/7`, accent:C.orange},
-          {label:"MOOD",     val:moodVals.length?(moodVals.reduce((a,b)=>a+b)/moodVals.length).toFixed(1):"—",accent:C.pale},
           {label:"WT Δ",     val:wts.length>=2?`${(wts.at(-1)-wts[0])>0?"+":""}${(wts.at(-1)-wts[0]).toFixed(1)}`:"—",accent:CYAN_HI},
         ].map(({label,val,accent})=>(
           <div key={label} style={{
@@ -1272,10 +1266,10 @@ const Drill = () => {
 
 // ─── BUDGET ───────────────────────────────────────────────────────────────────
 const BCATS = ["Food","Gas","Subscriptions","Rent/Bills","Entertainment","Shopping","Other"];
-const GOOD = "#55CC88", BAD = "#FF6B4A";
+const GOOD = CYAN, BAD = YELLOW_LO;
 const money = n => (Number(n)<0?"-":"")+"$"+Math.abs(Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const money0 = n => (Number(n)<0?"-":"")+"$"+Math.round(Math.abs(Number(n)||0)).toLocaleString();
-const pctColor = p => p>=100?BAD : p>=75?YELLOW : GOOD;
+const pctColor = p => p>=100?YELLOW_LO : p>=75?YELLOW : CYAN;
 const monthKey = d => (d||"").slice(0,7);
 const MN = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
@@ -1838,7 +1832,6 @@ export default function Mk1() {
     setStreaks({
       workout:calc(k=>workouts[k]),
       sleep:calc(k=>sleep[k]&&parseFloat(sleep[k].hours)>=7),
-      mood:calc(k=>metrics[k]?.mood),
       weight:calc(k=>metrics[k]?.weight),
     });
   },[workouts,sleep,metrics]);
@@ -1850,7 +1843,6 @@ export default function Mk1() {
       case"home":    return <Home data={data} streaks={streaks}/>;
       case"workout": return <Workout data={data} setData={setData} date={date} setDate={setDate}/>;
       case"sleep":   return <Sleep data={data} setData={setData} date={date} setDate={setDate}/>;
-      case"tasks":   return <Tasks data={data} setData={setData} date={date} setDate={setDate}/>;
       case"metrics": return <Metrics data={data} setData={setData} date={date} setDate={setDate}/>;
       case"week":    return <Week data={data}/>;
       case"budget":  return <Budget data={data} setData={setData}/>;
