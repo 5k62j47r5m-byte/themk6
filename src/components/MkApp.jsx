@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Home as HomeIcon, Dumbbell, Moon, ListChecks, Activity, CalendarDays, Flame, Wallet } from "lucide-react";
+import { Home as HomeIcon, Dumbbell, Moon, Activity, CalendarDays, Flame, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
@@ -60,7 +60,6 @@ const SP = {
   home:    { primary: YELLOW, secondary: CYAN   },
   workout: { primary: CYAN,   secondary: YELLOW },
   sleep:   { primary: CYAN,   secondary: YELLOW },
-  tasks:   { primary: YELLOW, secondary: CYAN   },
   metrics: { primary: CYAN,   secondary: YELLOW },
   week:    { primary: YELLOW, secondary: CYAN   },
   budget:  { primary: CYAN,   secondary: YELLOW },
@@ -73,7 +72,6 @@ const SECTIONS = [
   { id:"home",    label:"HOME",    Icon: HomeIcon     },
   { id:"workout", label:"WORKOUT", Icon: Dumbbell     },
   { id:"sleep",   label:"SLEEP",   Icon: Moon         },
-  { id:"tasks",   label:"TASKS",   Icon: ListChecks   },
   { id:"metrics", label:"METRICS", Icon: Activity     },
   { id:"week",    label:"WEEK",    Icon: CalendarDays },
   { id:"budget",  label:"BUDGET",  Icon: Wallet       },
@@ -482,15 +480,14 @@ const Home = ({data,streaks}) => {
   const pool=quotePool(data);
   const [qIdx,setQIdx]=useState(0);
   useEffect(()=>{
-    setQIdx(0);
+    setQIdx(Math.floor(Math.random()*pool.length));
     const id=setInterval(()=>setQIdx(i=>(i+1)%pool.length),20000);
     return ()=>clearInterval(id);
   },[pool]);
   const quote=pool[qIdx%pool.length];
-  const s=data.sleep[t],w=data.workouts[t],m=data.metrics[t],tk=data.tasks[t]||[];
+  const s=data.sleep[t],w=data.workouts[t],m=data.metrics[t];
   const wkDays=last7();
   const sleepVals=wkDays.map(d=>data.sleep[d]?.hours).filter(Boolean).map(Number);
-  const moodVals=wkDays.map(d=>data.metrics[d]?.mood).filter(Boolean).map(Number);
   const wCount=wkDays.filter(d=>data.workouts[d]).length;
   const wts=wkDays.map(d=>data.metrics[d]?.weight).filter(Boolean).map(Number);
 
@@ -513,11 +510,10 @@ const Home = ({data,streaks}) => {
 
       {/* Streaks */}
       <Lbl style={{marginBottom:18}}>Streaks</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:36}}>
         {[
           {label:"WORKOUT",val:streaks.workout||0,accent:C.orange},
           {label:"SLEEP",  val:streaks.sleep||0,  accent:C.silver},
-          {label:"MOOD",   val:streaks.mood||0,   accent:C.pale},
           {label:"WEIGHT", val:streaks.weight||0, accent:CYAN_HI},
         ].map(({label,val,accent})=>(
           <div key={label} style={{
@@ -536,12 +532,11 @@ const Home = ({data,streaks}) => {
 
       {/* Status */}
       <Lbl style={{marginBottom:18}}>Status</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:36}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginBottom:36}}>
         {[
           {label:"WORKOUT",logged:!!w,detail:w?`${w.exercises?.length||0} exercises`:"Not logged",accent:SP.workout.primary},
           {label:"SLEEP",  logged:!!s,detail:s?`${s.hours}h · ${s.quality}`:"Not logged",          accent:SP.sleep.primary},
-          {label:"TASKS",  logged:tk.length>0,detail:tk.length>0?`${tk.filter(x=>x.done).length}/${tk.length} done`:"Nothing added",accent:SP.tasks.primary},
-          {label:"METRICS",logged:!!m,detail:m?`${m.weight||"—"} lbs · ${m.mood||"—"}/5`:"Not logged",accent:SP.metrics.primary},
+          {label:"METRICS",logged:!!m,detail:m?`${m.weight||"—"} lbs`:"Not logged",accent:SP.metrics.primary},
         ].map(item=>(
           <div key={item.label} style={{
             background:C.surface,padding:"20px 18px",borderRadius:12,
@@ -551,7 +546,7 @@ const Home = ({data,streaks}) => {
           }}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <Lbl>{item.label}</Lbl>
-              <span style={{fontSize:14,fontWeight:800,color:item.logged?"#55CC88":C.orange}}>{item.logged?"✓":"✗"}</span>
+              <span style={{fontSize:14,fontWeight:800,color:item.logged?CYAN:C.orange}}>{item.logged?"✓":"✗"}</span>
             </div>
             <div style={{fontSize:14,fontWeight:600,color:item.logged?C.white:C.ghost,letterSpacing:"0.02em"}}>{item.detail}</div>
           </div>
@@ -560,11 +555,10 @@ const Home = ({data,streaks}) => {
 
       {/* Week avg */}
       <Lbl style={{marginBottom:18}}>Week Average</Lbl>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
         {[
           {label:"SLEEP",    val:sleepVals.length?(sleepVals.reduce((a,b)=>a+b)/sleepVals.length).toFixed(1)+"h":"—",accent:C.silver},
           {label:"WORKOUTS", val:`${wCount}/7`, accent:C.orange},
-          {label:"MOOD",     val:moodVals.length?(moodVals.reduce((a,b)=>a+b)/moodVals.length).toFixed(1):"—",accent:C.pale},
           {label:"WT Δ",     val:wts.length>=2?`${(wts.at(-1)-wts[0])>0?"+":""}${(wts.at(-1)-wts[0]).toFixed(1)}`:"—",accent:CYAN_HI},
         ].map(({label,val,accent})=>(
           <div key={label} style={{
@@ -905,199 +899,69 @@ const Sleep = ({data,setData,date,setDate}) => {
   );
 };
 
-// ─── TASKS ────────────────────────────────────────────────────────────────────
-// Thragg: orange urgency, relentless
-const Tasks = ({data,setData,date,setDate}) => {
-  const [txt,setTxt]=useState("");
-  const [dl,setDl]=useState("");
-  const tasks=data.tasks[date]||[];
-
-  const add=()=>{
-    if(!txt.trim())return;
-    setData({...data,tasks:{...data.tasks,[date]:[...tasks,{text:txt,deadline:dl,done:false,id:Date.now()}]}});
-    setTxt("");setDl("");
-  };
-  const toggle=id=>setData({...data,tasks:{...data.tasks,[date]:tasks.map(t=>t.id===id?{...t,done:!t.done}:t)}});
-  const remove=id=>{
-    if(!confirm("Delete this task?")) return;
-    setData({...data,tasks:{...data.tasks,[date]:tasks.filter(t=>t.id!==id)}});
-  };
-  const editTask=id=>{
-    const t=tasks.find(x=>x.id===id); if(!t) return;
-    const text=prompt("Task",t.text); if(text===null||!text.trim()) return;
-    const deadline=prompt("Deadline (YYYY-MM-DDTHH:MM, blank for none)",t.deadline||"");
-    if(deadline===null) return;
-    setData({...data,tasks:{...data.tasks,[date]:tasks.map(x=>x.id===id?{...x,text,deadline}:x)}});
-  };
-
-  const urgencyColor=dl=>{
-    if(!dl) return C.rim;
-    const d=(new Date(dl)-new Date())/86400000;
-    if(d<0)  return C.orange;
-    if(d<1)  return C.orange;
-    if(d<2)  return C.orangeHi;
-    if(d<3)  return "#C88020";
-    return C.pale;
-  };
-
-  const done=tasks.filter(t=>t.done).length;
-
-  return (
-    <div>
-      <DatePicker date={date} setDate={setDate} accent={C.orange}/>
-
-      <div style={{background:C.surface,padding:"22px 20px",marginBottom:32,borderTop:`1px solid ${C.orange}22`}}>
-        <Lbl color={C.orange} style={{marginBottom:18}}>Add Task</Lbl>
-        <Lbl style={{marginBottom:8}}>Task</Lbl>
-        <Input value={txt} onChange={e=>setTxt(e.target.value)} placeholder="The list doesn't care."
-          onKeyDown={e=>e.key==="Enter"&&add()} style={{marginBottom:16}}/>
-        <Lbl style={{marginBottom:8}}>Deadline</Lbl>
-        <Input type="datetime-local" value={dl} onChange={e=>setDl(e.target.value)} style={{marginBottom:20}}/>
-        <Btn onClick={add} accent={C.orange} style={{width:"100%"}}>Add Task</Btn>
-      </div>
-
-      {tasks.length===0
-        ? <Empty text="The world won't wait."/>
-        : <>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-              <Lbl>Tasks</Lbl>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <Lbl style={{color:done===tasks.length&&tasks.length>0?C.pale:C.ghost}}>{done}/{tasks.length}</Lbl>
-                {/* Subtle completion bar */}
-                <div style={{width:60,height:1,background:C.rule,position:"relative"}}>
-                  <div style={{
-                    position:"absolute",top:0,left:0,height:"100%",
-                    width:`${tasks.length>0?(done/tasks.length)*100:0}%`,
-                    background:C.orange,transition:"width 0.3s",
-                  }}/>
-                </div>
-              </div>
-            </div>
-            {tasks.map(task=>(
-              <div key={task.id} style={{
-                display:"flex",alignItems:"flex-start",gap:12,
-                padding:"13px 0 13px 12px",
-                borderBottom:`1px solid ${C.rule}`,
-                borderLeft:`2px solid ${task.done?C.rule:urgencyColor(task.deadline)}`,
-                opacity:task.done?0.35:1,
-                transition:"opacity 0.2s,border-color 0.2s",
-              }}>
-                <input type="checkbox" checked={task.done} onChange={()=>toggle(task.id)}
-                  style={{marginTop:3,accentColor:C.orange,cursor:"pointer",flexShrink:0}}/>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:13,color:C.white,letterSpacing:"0.02em",textDecoration:task.done?"line-through":"none"}}>{task.text}</div>
-                  {task.deadline&&(
-                    <div style={{...T.micro,color:urgencyColor(task.deadline),marginTop:5}}>
-                      Due {new Date(task.deadline).toLocaleDateString()} {new Date(task.deadline).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
-                    </div>
-                  )}
-                </div>
-                <div style={{display:"flex",gap:4,flexShrink:0}}>
-                  <button onClick={()=>editTask(task.id)} title="Edit" style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:9,letterSpacing:"0.15em",fontWeight:700,padding:"3px 7px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
-                  <button onClick={()=>remove(task.id)} title="Delete" style={{background:"none",border:`1px solid ${C.rule}`,color:C.ghost,cursor:"pointer",fontSize:14,lineHeight:1,padding:"2px 7px",borderRadius:4}}>×</button>
-                </div>
-              </div>
-            ))}
-          </>
-      }
-    </div>
-  );
-};
-
 // ─── METRICS ─────────────────────────────────────────────────────────────────
-// Split palette: weight=white (Emperor Mark), mood=orange (Thragg intensity), energy=silver
+// Bodyweight tracking only.
 const Metrics = ({data,setData,date,setDate}) => {
   const [wt,setWt]=useState("");
-  const [mood,setMood]=useState(3);
-  const [energy,setEnergy]=useState(3);
   const ex=data.metrics[date];
 
-  const log=()=>setData({...data,metrics:{...data.metrics,[date]:{weight:wt?parseFloat(wt):null,mood:parseInt(mood),energy:parseInt(energy)}}});
-  const loadMetrics=()=>{
-    if(!ex) return;
-    setWt(ex.weight!=null?String(ex.weight):""); setMood(ex.mood||3); setEnergy(ex.energy||3);
+  const log=()=>{
+    if(!wt) return;
+    const prev=data.metrics[date]||{};
+    setData({...data,metrics:{...data.metrics,[date]:{...prev,weight:parseFloat(wt)}}});
   };
+  const loadMetrics=()=>{ if(ex) setWt(ex.weight!=null?String(ex.weight):""); };
   const removeMetrics=()=>{
-    if(!confirm("Delete this metrics entry?")) return;
+    if(!confirm("Delete this weight entry?")) return;
     const next={...data.metrics}; delete next[date];
     setData({...data,metrics:next});
   };
 
-  const wtData=last30().map(d=>data.metrics[d]?.weight||null);
-  const moodData=last30().map(d=>data.metrics[d]?.mood||null);
-  const engData=last30().map(d=>data.metrics[d]?.energy||null);
+  const days=last30();
+  const wtData=days.map(d=>data.metrics[d]?.weight||null);
+  const logged=wtData.filter(v=>v!=null);
+  const delta=logged.length>=2?(logged.at(-1)-logged[0]):null;
 
   return (
     <div>
       <DatePicker date={date} setDate={setDate} accent={C.pale}/>
 
-      {ex&&(
-        <>
-          <div style={{display:"flex",gap:1,marginBottom:12}}>
-            {ex.weight!=null&&<StatTile label="WEIGHT" value={ex.weight} accent={C.white}/>}
-            <StatTile label="MOOD"   value={`${ex.mood}/5`}   accent={C.orange}/>
-            <StatTile label="ENERGY" value={`${ex.energy}/5`} accent={C.silver}/>
-          </div>
-          <div style={{display:"flex",gap:8,marginBottom:32,justifyContent:"flex-end"}}>
-            <button onClick={loadMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>EDIT</button>
-            <button onClick={removeMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.orange,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:4,fontFamily:"inherit"}}>DELETE</button>
-          </div>
-        </>
-      )}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12,marginBottom:28}}>
+        <div style={{background:C.surface,padding:"20px 18px",borderRadius:14,border:`1px solid ${C.silver}33`,borderBottom:`3px solid ${C.silver}`}}>
+          <div style={{fontSize:32,fontWeight:800,color:C.silver,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{ex?.weight??"—"}</div>
+          <Lbl style={{marginTop:10}}>TODAY (LBS)</Lbl>
+        </div>
+        <div style={{background:C.surface,padding:"20px 18px",borderRadius:14,border:`1px solid ${C.orange}33`,borderBottom:`3px solid ${C.orange}`}}>
+          <div style={{fontSize:32,fontWeight:800,color:C.orange,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{delta!=null?`${delta>0?"+":""}${delta.toFixed(1)}`:"—"}</div>
+          <Lbl style={{marginTop:10}}>30-DAY Δ</Lbl>
+        </div>
+        <div style={{background:C.surface,padding:"20px 18px",borderRadius:14,border:`1px solid ${C.rule}`,borderBottom:`3px solid ${C.rule}`}}>
+          <div style={{fontSize:32,fontWeight:800,color:C.white,lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{logged.length}</div>
+          <Lbl style={{marginTop:10}}>ENTRIES / 30</Lbl>
+        </div>
+      </div>
 
-      <div style={{background:C.surface,padding:"22px 20px",marginBottom:32}}>
-        <Lbl color={C.pale} style={{marginBottom:18}}>Log Metrics</Lbl>
+      <div style={{background:C.surface,padding:"22px 20px",borderRadius:16,border:`1px solid ${C.rule}`,marginBottom:28}}>
+        <Lbl color={C.pale} style={{marginBottom:18}}>Log Bodyweight</Lbl>
         <Lbl style={{marginBottom:8}}>Weight (lbs)</Lbl>
         <Input type="number" value={wt} onChange={e=>setWt(e.target.value)} placeholder="e.g. 175" style={{marginBottom:20}}/>
-        {[
-          {label:"Mood",   val:mood,   set:setMood,   color:C.orange},
-          {label:"Energy", val:energy, set:setEnergy, color:C.silver},
-        ].map(item=>(
-          <div key={item.label} style={{marginBottom:20}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-              <Lbl>{item.label}</Lbl>
-              <span style={{fontSize:13,color:item.color,fontVariantNumeric:"tabular-nums"}}>{item.val}/5</span>
-            </div>
-            <div style={{display:"flex",gap:1}}>
-              {[1,2,3,4,5].map(n=>(
-                <button key={n} onClick={()=>item.set(n)} style={{
-                  flex:1,height:34,cursor:"pointer",fontFamily:"inherit",fontSize:12,
-                  border:`1px solid ${item.val>=n?item.color:C.rule}`,
-                  background:item.val>=n?`${item.color}18`:"transparent",
-                  color:item.val>=n?item.color:C.ghost,
-                  transition:"all 0.12s",
-                }}>{n}</button>
-              ))}
-            </div>
+        <Btn onClick={log} accent={C.pale} style={{width:"100%"}}>Log Weight</Btn>
+        {ex&&(
+          <div style={{display:"flex",gap:8,marginTop:14,justifyContent:"flex-end"}}>
+            <button onClick={loadMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.silver,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:6,fontFamily:"inherit"}}>EDIT</button>
+            <button onClick={removeMetrics} style={{background:"none",border:`1px solid ${C.rule}`,color:C.orange,cursor:"pointer",fontSize:10,letterSpacing:"0.18em",fontWeight:700,padding:"6px 12px",borderRadius:6,fontFamily:"inherit"}}>DELETE</button>
           </div>
-        ))}
-        <Btn onClick={log} accent={C.pale} style={{width:"100%"}}>Log Metrics</Btn>
+        )}
       </div>
 
       <Lbl style={{marginBottom:12}}>Weight — 30 days</Lbl>
-      <div style={{background:C.surface,padding:"16px 16px 10px",marginBottom:28}}>
-        <Spark data={wtData} color={C.white} h={60}/>
-      </div>
-
-      <Lbl style={{marginBottom:12}}>Mood / Energy</Lbl>
-      <div style={{background:C.surface,padding:"16px 16px 10px"}}>
-        <div style={{display:"flex",gap:20,marginBottom:10}}>
-          {[["Mood",C.orange],["Energy",C.silver]].map(([l,c])=>(
-            <div key={l} style={{display:"flex",alignItems:"center",gap:6,...T.micro,color:c}}>
-              <div style={{width:12,height:1,background:c}}/>{l}
-            </div>
-          ))}
-        </div>
-        <div style={{position:"relative"}}>
-          <Spark data={moodData} color={C.orange} h={60}/>
-          <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,pointerEvents:"none"}}>
-            <Spark data={engData} color={C.silver} h={60}/>
-          </div>
-        </div>
+      <div style={{background:C.surface,padding:"16px 16px 10px",borderRadius:16,border:`1px solid ${C.rule}`}}>
+        <Spark data={wtData} color={C.silver} h={80}/>
       </div>
     </div>
   );
 };
+
 
 // ─── WEEK ─────────────────────────────────────────────────────────────────────
 const Week = ({data}) => {
@@ -1110,15 +974,15 @@ const Week = ({data}) => {
         <table style={{width:"100%",borderCollapse:"collapse",minWidth:460}}>
           <thead>
             <tr>
-              {["DAY","SLEEP","WORKOUT","MOOD","ENERGY","WEIGHT","TASKS"].map(h=>(
+              {["DAY","SLEEP","WORKOUT","WEIGHT"].map(h=>(
                 <th key={h} style={{padding:"0 8px 12px 0",textAlign:"left",...T.micro,color:C.ghost,fontWeight:500,borderBottom:`1px solid ${C.rule}`}}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {days.map(d=>{
-              const s=data.sleep[d],w=data.workouts[d],m=data.metrics[d],tk=data.tasks[d]||[];
-              const h=parseFloat(s?.hours||0),isT=d===today(),done=tk.filter(t=>t.done).length;
+              const s=data.sleep[d],w=data.workouts[d],m=data.metrics[d];
+              const h=parseFloat(s?.hours||0),isT=d===today();
               return (
                 <tr key={d} style={{borderBottom:`1px solid ${C.rule}`,background:isT?C.surface:"transparent"}}>
                   <td style={{padding:"13px 8px 13px 0"}}>
@@ -1131,17 +995,8 @@ const Week = ({data}) => {
                   <td style={{padding:"13px 8px 13px 0"}}>
                     {w?<span style={{...T.micro,color:C.orange}}>✓ {w.exercises?.length||0}</span>:<Dash/>}
                   </td>
-                  <td style={{padding:"13px 8px 13px 0"}}>
-                    {m?.mood?<span style={{fontSize:14,fontWeight:300,color:C.orange}}>{m.mood}</span>:<Dash/>}
-                  </td>
-                  <td style={{padding:"13px 8px 13px 0"}}>
-                    {m?.energy?<span style={{fontSize:14,fontWeight:300,color:C.silver}}>{m.energy}</span>:<Dash/>}
-                  </td>
-                  <td style={{padding:"13px 8px 13px 0"}}>
-                    {m?.weight?<span style={{fontSize:14,fontWeight:300,color:C.white,fontVariantNumeric:"tabular-nums"}}>{m.weight}</span>:<Dash/>}
-                  </td>
                   <td style={{padding:"13px 0"}}>
-                    {tk.length>0?<span style={{fontSize:12,fontWeight:300,color:done===tk.length?"#55CC88":C.pale}}>{done}/{tk.length}</span>:<Dash/>}
+                    {m?.weight?<span style={{fontSize:14,fontWeight:300,color:C.white,fontVariantNumeric:"tabular-nums"}}>{m.weight}</span>:<Dash/>}
                   </td>
                 </tr>
               );
@@ -1153,8 +1008,8 @@ const Week = ({data}) => {
       <Lbl style={{marginBottom:12}}>Sleep Trend</Lbl>
       <Spark data={days.map(d=>data.sleep[d]?.hours?parseFloat(data.sleep[d].hours):null)} color={C.silver} h={52}/>
       <Rule accent={C.orange}/>
-      <Lbl style={{marginBottom:12}}>Mood Trend</Lbl>
-      <Spark data={days.map(d=>data.metrics[d]?.mood||null)} color={C.orange} h={52}/>
+      <Lbl style={{marginBottom:12}}>Weight Trend</Lbl>
+      <Spark data={days.map(d=>data.metrics[d]?.weight||null)} color={C.orange} h={52}/>
     </div>
   );
 };
@@ -1272,10 +1127,10 @@ const Drill = () => {
 
 // ─── BUDGET ───────────────────────────────────────────────────────────────────
 const BCATS = ["Food","Gas","Subscriptions","Rent/Bills","Entertainment","Shopping","Other"];
-const GOOD = "#55CC88", BAD = "#FF6B4A";
+const GOOD = CYAN, BAD = YELLOW_LO;
 const money = n => (Number(n)<0?"-":"")+"$"+Math.abs(Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const money0 = n => (Number(n)<0?"-":"")+"$"+Math.round(Math.abs(Number(n)||0)).toLocaleString();
-const pctColor = p => p>=100?BAD : p>=75?YELLOW : GOOD;
+const pctColor = p => p>=100?YELLOW_LO : p>=75?YELLOW : CYAN;
 const monthKey = d => (d||"").slice(0,7);
 const MN = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
@@ -1838,7 +1693,6 @@ export default function Mk1() {
     setStreaks({
       workout:calc(k=>workouts[k]),
       sleep:calc(k=>sleep[k]&&parseFloat(sleep[k].hours)>=7),
-      mood:calc(k=>metrics[k]?.mood),
       weight:calc(k=>metrics[k]?.weight),
     });
   },[workouts,sleep,metrics]);
@@ -1850,7 +1704,6 @@ export default function Mk1() {
       case"home":    return <Home data={data} streaks={streaks}/>;
       case"workout": return <Workout data={data} setData={setData} date={date} setDate={setDate}/>;
       case"sleep":   return <Sleep data={data} setData={setData} date={date} setDate={setDate}/>;
-      case"tasks":   return <Tasks data={data} setData={setData} date={date} setDate={setDate}/>;
       case"metrics": return <Metrics data={data} setData={setData} date={date} setDate={setDate}/>;
       case"week":    return <Week data={data}/>;
       case"budget":  return <Budget data={data} setData={setData}/>;
