@@ -480,7 +480,7 @@ const Home = ({data,streaks}) => {
   const pool=quotePool(data);
   const [qIdx,setQIdx]=useState(0);
   useEffect(()=>{
-    setQIdx(0);
+    setQIdx(Math.floor(Math.random()*pool.length));
     const id=setInterval(()=>setQIdx(i=>(i+1)%pool.length),20000);
     return ()=>clearInterval(id);
   },[pool]);
