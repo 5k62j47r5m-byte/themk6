@@ -974,15 +974,15 @@ const Week = ({data}) => {
         <table style={{width:"100%",borderCollapse:"collapse",minWidth:460}}>
           <thead>
             <tr>
-              {["DAY","SLEEP","WORKOUT","MOOD","ENERGY","WEIGHT","TASKS"].map(h=>(
+              {["DAY","SLEEP","WORKOUT","WEIGHT"].map(h=>(
                 <th key={h} style={{padding:"0 8px 12px 0",textAlign:"left",...T.micro,color:C.ghost,fontWeight:500,borderBottom:`1px solid ${C.rule}`}}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {days.map(d=>{
-              const s=data.sleep[d],w=data.workouts[d],m=data.metrics[d],tk=data.tasks[d]||[];
-              const h=parseFloat(s?.hours||0),isT=d===today(),done=tk.filter(t=>t.done).length;
+              const s=data.sleep[d],w=data.workouts[d],m=data.metrics[d];
+              const h=parseFloat(s?.hours||0),isT=d===today();
               return (
                 <tr key={d} style={{borderBottom:`1px solid ${C.rule}`,background:isT?C.surface:"transparent"}}>
                   <td style={{padding:"13px 8px 13px 0"}}>
@@ -995,17 +995,8 @@ const Week = ({data}) => {
                   <td style={{padding:"13px 8px 13px 0"}}>
                     {w?<span style={{...T.micro,color:C.orange}}>✓ {w.exercises?.length||0}</span>:<Dash/>}
                   </td>
-                  <td style={{padding:"13px 8px 13px 0"}}>
-                    {m?.mood?<span style={{fontSize:14,fontWeight:300,color:C.orange}}>{m.mood}</span>:<Dash/>}
-                  </td>
-                  <td style={{padding:"13px 8px 13px 0"}}>
-                    {m?.energy?<span style={{fontSize:14,fontWeight:300,color:C.silver}}>{m.energy}</span>:<Dash/>}
-                  </td>
-                  <td style={{padding:"13px 8px 13px 0"}}>
-                    {m?.weight?<span style={{fontSize:14,fontWeight:300,color:C.white,fontVariantNumeric:"tabular-nums"}}>{m.weight}</span>:<Dash/>}
-                  </td>
                   <td style={{padding:"13px 0"}}>
-                    {tk.length>0?<span style={{fontSize:12,fontWeight:300,color:done===tk.length?"#55CC88":C.pale}}>{done}/{tk.length}</span>:<Dash/>}
+                    {m?.weight?<span style={{fontSize:14,fontWeight:300,color:C.white,fontVariantNumeric:"tabular-nums"}}>{m.weight}</span>:<Dash/>}
                   </td>
                 </tr>
               );
@@ -1017,8 +1008,8 @@ const Week = ({data}) => {
       <Lbl style={{marginBottom:12}}>Sleep Trend</Lbl>
       <Spark data={days.map(d=>data.sleep[d]?.hours?parseFloat(data.sleep[d].hours):null)} color={C.silver} h={52}/>
       <Rule accent={C.orange}/>
-      <Lbl style={{marginBottom:12}}>Mood Trend</Lbl>
-      <Spark data={days.map(d=>data.metrics[d]?.mood||null)} color={C.orange} h={52}/>
+      <Lbl style={{marginBottom:12}}>Weight Trend</Lbl>
+      <Spark data={days.map(d=>data.metrics[d]?.weight||null)} color={C.orange} h={52}/>
     </div>
   );
 };
